@@ -20,7 +20,7 @@ echo ""
 if [ ! -d ".git" ]; then
   echo "→ 初始化 Git 仓库..."
   git init
-  git checkout -b main
+  git checkout -b master
 fi
 
 # 配置远程仓库
@@ -56,7 +56,7 @@ echo ""
 echo "→ 推送到 GitHub..."
 echo ""
 
-git push -u origin main
+git push -u origin master
 
 echo ""
 echo "============================================"

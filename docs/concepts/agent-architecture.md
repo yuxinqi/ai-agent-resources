@@ -188,5 +188,3 @@ Execute: 按顺序执行每个步骤
 - [LLM 基础](llm-basics.md) — Agent 的"大脑"工作原理
 - [Function Calling 机制](function-calling.md) — Agent 调用工具的核心能力
 - [MCP 协议](mcp-protocol.md) — 工具接入的标准化协议
-- [AutoGen 多 Agent 框架](../tools/autogen-intro.md)
-- [CrewAI 多 Agent 协作](../tools/crewai-intro.md)

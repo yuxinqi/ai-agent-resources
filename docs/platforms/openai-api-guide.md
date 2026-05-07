@@ -7,7 +7,7 @@ related:
   - platform-comparison.md
 depends_on:
   - ../concepts/llm-basics.md
-verification: false
+verification: true
 created: 2026-05-07
 updated: 2026-05-07
 ---

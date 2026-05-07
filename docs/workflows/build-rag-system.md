@@ -30,18 +30,19 @@ updated: 2026-05-07
 ## 环境准备
 
 ```bash
-pip install langchain chromadb openai tiktoken
+pip install langchain langchain-openai langchain-community chromadb tiktoken openai
 ```
 
 ## 完整代码实现
 
+> ⚠️ 以下代码使用 LangChain v0.3+ API。`RetrievalQA` 在 v0.3 中已进入维护模式，推荐新项目使用 LCEL（LangChain Expression Language）。
+
 ```python
 import os
-from langchain.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 
 # 1. 加载文档

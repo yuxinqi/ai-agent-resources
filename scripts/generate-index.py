@@ -27,7 +27,7 @@ INDEX_FILE = os.path.join(PROJECT_ROOT, "INDEX.md")
 CATEGORY_MAP = {
     "concepts": ("一、核心概念 (Concepts)", "基础理论"),
     "platforms": ("二、API 平台申请与使用 (Platforms)", "平台"),
-    "prompts": ("三、提示词资源 (Prompts)", "提词"),
+    "prompts": ("三、提示词资源 (Prompts)", "提示词"),
     "skills": ("四、Skills 资源 (Skills)", "技能"),
     "tools": ("五、工具与框架 (Tools)", "工具"),
     "workflows": ("六、流程化指南 (Workflows)", "流程"),
@@ -38,6 +38,8 @@ VERIFICATION_ENTRIES = [
     ("提示词验真模板", "verification/prompts/template.md", "模板", True, "A"),
     ("平台信息验真模板", "verification/platforms/template.md", "模板", True, "A"),
     ("Skills 验真模板", "verification/skills/template.md", "模板", True, "A"),
+    ("OpenAI API 指南验真", "verification/platforms/openai-api-2026-05.md", "验真报告", True, "B"),
+    ("Anthropic API 指南验真", "verification/platforms/anthropic-claude-2026-05.md", "验真报告", True, "B"),
 ]
 
 VISUALIZATION_ENTRIES = [
@@ -164,9 +166,47 @@ def generate_index(entries):
     return '\n'.join(lines)
 
 
+def check_links():
+    """检查所有文档中的断裂引用（related / depends_on 指向不存在的文件）"""
+    entries = scan_docs()
+    has_errors = False
+
+    for entry in entries:
+        filepath = os.path.join(PROJECT_ROOT, entry['file'])
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        frontmatter = parse_frontmatter(content)
+
+        for field in ['related', 'depends_on']:
+            raw = frontmatter.get(field, '')
+            if not raw:
+                continue
+            # 处理 YAML 列表格式: "- item1\n  - item2"
+            refs = re.findall(r'- (.+)', raw)
+            for ref in refs:
+                ref = ref.strip()
+                if not ref:
+                    continue
+                # 解析相对路径
+                ref_dir = os.path.dirname(filepath)
+                ref_path = os.path.normpath(os.path.join(ref_dir, ref))
+                if not os.path.exists(ref_path):
+                    print(f"❌ {entry['file']}: {field} -> '{ref}' (文件不存在)")
+                    has_errors = True
+
+    if not has_errors:
+        print("✅ 所有引用链接有效")
+    return has_errors
+
+
 def main():
     # 扫描文档
     entries = scan_docs()
+
+    # --check-links 模式：验证链接完整性
+    if "--check-links" in sys.argv:
+        return 1 if check_links() else 0
 
     # 生成内容
     index_content = generate_index(entries)
@@ -197,3 +237,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

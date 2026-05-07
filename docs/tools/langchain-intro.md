@@ -44,8 +44,10 @@ updated: 2026-05-07
 
 ## 三、快速示例
 
+> ⚠️ 以下示例使用 LangChain v0.3+ API。需先安装：`pip install langchain langchain-openai`
+
 ```python
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain.tools import tool
 from langchain.prompts import PromptTemplate
