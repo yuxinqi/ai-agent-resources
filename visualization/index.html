@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 资源知识图谱</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a1f36;
+  --bg-card-hover: #1f2647;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-pink: #ec4899;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #1e293b;
+  --glow-blue: 0 0 20px rgba(59,130,246,0.15);
+  --glow-purple: 0 0 20px rgba(139,92,246,0.15);
+  --radius: 12px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Background animation */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(6,182,212,0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HEADER */
+.header {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 20px 40px;
+  background: linear-gradient(180deg, rgba(59,130,246,0.1) 0%, transparent 100%);
+}
+.header h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.header .subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  letter-spacing: 6px;
+  font-weight: 300;
+}
+
+/* NAV */
+.nav {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 20px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+.nav a {
+  padding: 12px 28px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.nav a:hover, .nav a.active {
+  color: var(--text-primary);
+  background: rgba(59,130,246,0.1);
+  border-color: rgba(59,130,246,0.3);
+}
+.nav a.active {
+  background: rgba(59,130,246,0.15);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 15px rgba(59,130,246,0.15);
+}
+
+/* SECTIONS */
+.section {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto 60px;
+  padding: 0 20px;
+}
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title .badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: rgba(59,130,246,0.15);
+  color: var(--accent-blue);
+  border: 1px solid rgba(59,130,246,0.3);
+}
+.section-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+  margin-bottom: 24px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+.card:hover {
+  border-color: rgba(59,130,246,0.3);
+  box-shadow: var(--glow-blue);
+}
+.card-glow {
+  box-shadow: var(--glow-blue);
+  border-color: rgba(59,130,246,0.2);
+}
+
+/* GRAPH CONTAINER */
+.graph-container {
+  width: 100%;
+  height: 600px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(59,130,246,0.03) 0%, transparent 70%);
+}
+.graph-container svg {
+  width: 100%;
+  height: 100%;
+}
+.graph-tooltip {
+  position: absolute;
+  padding: 8px 14px;
+  background: rgba(15,23,42,0.95);
+  border: 1px solid rgba(59,130,246,0.4);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+/* TABLE */
+.table-wrapper {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid var(--border-color);
+}
+tbody td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(30,41,59,0.5);
+  color: var(--text-secondary);
+}
+tbody tr {
+  transition: background 0.2s;
+}
+tbody tr:hover {
+  background: rgba(59,130,246,0.04);
+}
+td:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge-pending {
+  background: rgba(245,158,11,0.12);
+  color: var(--accent-orange);
+  border: 1px solid rgba(245,158,11,0.3);
+}
+.badge-verified {
+  background: rgba(16,185,129,0.12);
+  color: var(--accent-green);
+  border: 1px solid rgba(16,185,129,0.3);
+}
+.badge-rating {
+  background: rgba(139,92,246,0.12);
+  color: var(--accent-purple);
+  border: 1px solid rgba(139,92,246,0.3);
+  font-weight: 700;
+}
+.badge-type {
+  background: rgba(6,182,212,0.08);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(6,182,212,0.2);
+  font-size: 0.75rem;
+}
+
+/* LEGEND */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(15,23,42,0.5);
+  border-radius: 8px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* BAR CHART */
+.bar-chart { margin-top: 16px; }
+.bar-group { margin-bottom: 24px; }
+.bar-group-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.bar-label {
+  width: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 28px;
+  background: rgba(30,41,59,0.6);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  min-width: 30px;
+}
+.bar-value {
+  width: 50px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: left;
+  flex-shrink: 0;
+}
+.stars {
+  color: var(--accent-orange);
+  letter-spacing: 2px;
+}
+
+/* PLATFORM CARDS */
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.platform-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+.platform-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59,130,246,0.3);
+  box-shadow: var(--glow-blue);
+}
+.platform-card .platform-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.platform-card .stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(30,41,59,0.5);
+}
+.platform-card .stat-row:last-child { border-bottom: none; }
+.platform-card .stat-label { color: var(--text-muted); }
+.platform-card .stat-value { color: var(--text-secondary); font-weight: 500; }
+
+/* TIMELINE */
+.timeline {
+  position: relative;
+  padding-left: 40px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple), var(--accent-cyan));
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 28px;
+  padding-left: 20px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--accent-blue);
+  box-shadow: 0 0 10px rgba(59,130,246,0.3);
+}
+.timeline-item:nth-child(even)::before {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 10px rgba(139,92,246,0.3);
+}
+.timeline-item:last-child::before {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(6,182,212,0.4);
+  background: var(--accent-cyan);
+}
+.timeline-year {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  display: inline-block;
+  margin-bottom: 2px;
+}
+.timeline-event {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* FOOTER */
+.footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 20px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 40px;
+}
+.footer a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer a:hover { color: var(--accent-purple); }
+.footer p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .header h1 { font-size: 1.8rem; }
+  .header .subtitle { font-size: 0.9rem; letter-spacing: 3px; }
+  .nav a { padding: 10px 16px; font-size: 0.85rem; }
+  .graph-container { height: 400px; }
+  .bar-label { width: 70px; font-size: 0.75rem; }
+  .platform-grid { grid-template-columns: 1fr; }
+  .timeline { padding-left: 30px; }
+}
+
+/* SMOOTH FADE-IN ON SCROLL */
+.section { opacity: 0; transform: translateY(20px); animation: fadeIn 0.6s ease forwards; }
+.section:nth-child(2) { animation-delay: 0.1s; }
+.section:nth-child(3) { animation-delay: 0.2s; }
+.section:nth-child(4) { animation-delay: 0.3s; }
+.section:nth-child(5) { animation-delay: 0.4s; }
+.section:nth-child(6) { animation-delay: 0.5s; }
+
+@keyframes fadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Section visibility toggle */
+.section-page { display: none; }
+.section-page.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <h1>AI Agent 资源知识图谱</h1>
+  <p class="subtitle">结构化 · 可验真 · 流程化</p>
+</header>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav">
+  <a href="#" class="active" data-section="graph">概念图谱</a>
+  <a href="#" data-section="verification">验真看板</a>
+  <a href="#" data-section="platform">平台对比</a>
+  <a href="#" data-section="timeline">技术时间线</a>
+</nav>
+
+<!-- SECTION 1: CONCEPT GRAPH -->
+<section class="section section-page active" id="section-graph">
+  <div class="section-title">
+    概念关系图谱
+    <span class="badge">Interactive</span>
+  </div>
+  <div class="section-desc">拖拽节点探索 AI Agent 核心概念之间的关系 · 滚轮缩放</div>
+  <div class="section-divider"></div>
+  <div class="card card-glow">
+    <div class="graph-container" id="graphContainer">
+      <div class="graph-tooltip" id="graphTooltip"></div>
+    </div>
+    <div class="legend" id="graphLegend"></div>
+  </div>
+</section>
+
+<!-- SECTION 2: VERIFICATION DASHBOARD -->
+<section class="section section-page" id="section-verification">
+  <div class="section-title">
+    验真看板
+    <span class="badge">Verification</span>
+  </div>
+  <div class="section-desc">文档验真状态追踪 — 确保知识库内容的准确性</div>
+  <div class="section-divider"></div>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>文档</th>
+            <th>类型</th>
+            <th>验真状态</th>
+            <th>评级</th>
+            <th>最后验真</th>
+          </tr>
+        </thead>
+        <tbody id="verificationTableBody">
+        </tbody>
+      </table>
+    </div>
+    <div class="legend" style="margin-top:16px; border: 1px solid var(--border-color);">
+      <span class="legend-item"><span class="legend-dot" style="background:var(--accent-orange)"></span> 待验真 — 文档尚未经过验证</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--accent-green)"></span> 已验真 — 文档已通过验证</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--accent-purple)"></span> A 级 — 最高可信度</span>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: PLATFORM COMPARISON -->
+<section class="section section-page" id="section-platform">
+  <div class="section-title">
+    平台对比
+    <span class="badge">Comparison</span>
+  </div>
+  <div class="section-desc">主流 AI 平台核心能力横向对比</div>
+  <div class="section-divider"></div>
+
+  <!-- Platform Cards -->
+  <div class="platform-grid" id="platformGrid"></div>
+
+  <!-- Bar Charts -->
+  <div class="card card-glow">
+    <div class="bar-chart" id="barChart"></div>
+  </div>
+</section>
+
+<!-- SECTION 4: TIMELINE -->
+<section class="section section-page" id="section-timeline">
+  <div class="section-title">
+    技术时间线
+    <span class="badge">History</span>
+  </div>
+  <div class="section-desc">大语言模型与 AI Agent 技术发展历程</div>
+  <div class="section-divider"></div>
+  <div class="card" style="max-width:700px; margin:0 auto;">
+    <div class="timeline" id="timelineContainer"></div>
+  </div>
+</section>
+
+<!-- SECTION 5: GRAPH LEGEND (hidden, used) -->
+<!-- FOOTER -->
+<footer class="footer">
+  <a href="https://github.com/yuxinqi/ai-agent-resources" target="_blank" rel="noopener">GitHub — AI Agent Resources</a>
+  <p>最后更新: <span id="lastUpdated"></span></p>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ============================================================
+     NAVIGATION
+     ============================================================ */
+  const navLinks = document.querySelectorAll('.nav a');
+  const sections = document.querySelectorAll('.section-page');
+
+  navLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = this.getAttribute('data-section');
+
+      navLinks.forEach(function(l) { l.classList.remove('active'); });
+      this.classList.add('active');
+
+      sections.forEach(function(s) { s.classList.remove('active'); });
+      document.getElementById('section-' + target).classList.add('active');
+
+      // Trigger resize for graph if graph tab
+      if (target === 'graph') {
+        setTimeout(function() {
+          if (window.__graphResize) window.__graphResize();
+        }, 100);
+      }
+    });
+  });
+
+  /* ============================================================
+     FOOTER DATE
+     ============================================================ */
+  document.getElementById('lastUpdated').textContent = '2026-05-07';
+
+  /* ============================================================
+     DATA: NODES & LINKS
+     ============================================================ */
+  var nodes = [
+    { id: "LLM", name: "LLM (大语言模型)", category: "基础理论" },
+    { id: "Agent", name: "Agent (智能体)", category: "架构设计" },
+    { id: "RAG", name: "RAG (检索增强生成)", category: "应用模式" },
+    { id: "MCP", name: "MCP 协议", category: "协议标准" },
+    { id: "FC", name: "Function Calling", category: "API 能力" },
+    { id: "Embedding", name: "Embedding", category: "技术基础" },
+    { id: "VectorDB", name: "向量数据库", category: "技术基础" },
+    { id: "Finetune", name: "Fine-tuning (微调)", category: "模型定制" },
+    { id: "Multimodal", name: "多模态 AI", category: "前沿方向" },
+    { id: "Safety", name: "AI 安全", category: "安全" },
+    { id: "Prompt", name: "提示词工程", category: "实践" },
+    { id: "MAS", name: "多 Agent 系统", category: "架构设计" }
+  ];
+
+  var links = [
+    { source: "LLM", target: "Agent", type: "depends_on" },
+    { source: "LLM", target: "RAG", type: "depends_on" },
+    { source: "LLM", target: "Finetune", type: "depends_on" },
+    { source: "Agent", target: "FC", type: "depends_on" },
+    { source: "Agent", target: "MCP", type: "depends_on" },
+    { source: "Agent", target: "MAS", type: "related_to" },
+    { source: "RAG", target: "Embedding", type: "depends_on" },
+    { source: "RAG", target: "VectorDB", type: "depends_on" },
+    { source: "LLM", target: "Multimodal", type: "related_to" },
+    { source: "Agent", target: "Safety", type: "related_to" },
+    { source: "LLM", target: "Prompt", type: "related_to" },
+    { source: "FC", target: "MCP", type: "evolves_to" }
+  ];
+
+  var categories = ["基础理论","架构设计","应用模式","协议标准","API 能力","技术基础","模型定制","前沿方向","安全","实践"];
+  var catColors = {
+    "基础理论": "#3b82f6",
+    "架构设计": "#8b5cf6",
+    "应用模式": "#10b981",
+    "协议标准": "#f59e0b",
+    "API 能力": "#ec4899",
+    "技术基础": "#06b6d4",
+    "模型定制": "#f97316",
+    "前沿方向": "#14b8a6",
+    "安全": "#ef4444",
+    "实践": "#a78bfa"
+  };
+
+  /* ============================================================
+     FORCE-DIRECTED GRAPH
+     ============================================================ */
+  function renderGraph() {
+    var container = document.getElementById('graphContainer');
+    var tooltip = document.getElementById('graphTooltip');
+    var rect = container.getBoundingClientRect();
+    var width = rect.width || 800;
+    var height = rect.height || 600;
+
+    // Clear
+    container.querySelectorAll('svg').forEach(function(s) { s.remove(); });
+
+    // Legend
+    var legendEl = document.getElementById('graphLegend');
+    legendEl.innerHTML = '';
+    Object.keys(catColors).forEach(function(cat) {
+      var item = document.createElement('span');
+      item.className = 'legend-item';
+      item.innerHTML = '<span class="legend-dot" style="background:'+catColors[cat]+'"></span> '+cat;
+      legendEl.appendChild(item);
+    });
+
+    var svg = d3.select("#graphContainer")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .style("cursor", "grab");
+
+    // defs for arrowheads
+    var defs = svg.append("defs");
+    var linkTypes = ["depends_on","related_to","evolves_to"];
+    var arrowColors = { depends_on: "#3b82f6", related_to: "#8b5cf6", evolves_to: "#f59e0b" };
+    linkTypes.forEach(function(t) {
+      defs.append("marker")
+        .attr("id", "arrow-"+t)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 30)
+        .attr("refY", 0)
+        .attr("markerWidth", 8)
+        .attr("markerHeight", 8)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", arrowColors[t] || "#3b82f6");
+    });
+
+    // Background pattern (subtle grid)
+    defs.append("pattern")
+      .attr("id", "grid")
+      .attr("width", 40).attr("height", 40)
+      .attr("patternUnits", "userSpaceOnUse")
+      .append("path")
+      .attr("d", "M 40 0 L 0 0 0 40")
+      .attr("fill", "none")
+      .attr("stroke", "rgba(59,130,246,0.05)")
+      .attr("stroke-width", 0.5);
+
+    svg.append("rect").attr("width", width).attr("height", height).attr("fill", "url(#grid)");
+
+    // Convert link source/target from ids to node objects
+    var nodeMap = {};
+    nodes.forEach(function(n) { nodeMap[n.id] = n; });
+    var graphLinks = links.map(function(l) {
+      return { source: l.source, target: l.target, type: l.type };
+    });
+
+    // Setup simulation
+    var simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(graphLinks).id(function(d) { return d.id; }).distance(140))
+      .force("charge", d3.forceManyBody().strength(-500))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collision", d3.forceCollide(50));
+
+    var linkGroup = svg.append("g");
+    var nodeGroup = svg.append("g");
+
+    // Links
+    var linkEls = linkGroup.selectAll("g")
+      .data(graphLinks)
+      .enter().append("g");
+
+    var linkLines = linkEls.append("line")
+      .attr("stroke-width", 2)
+      .attr("stroke", function(d) { return arrowColors[d.type] || "#3b82f6"; })
+      .attr("stroke-opacity", 0.5)
+      .attr("marker-end", function(d) { return "url(#arrow-"+d.type+")"; });
+
+    var linkLabels = linkEls.append("text")
+      .attr("font-size", "11px")
+      .attr("fill", "#64748b")
+      .attr("text-anchor", "middle")
+      .attr("dy", "-6")
+      .attr("font-weight", "500")
+      .text(function(d) {
+        var map = { depends_on: "依赖", related_to: "关联", evolves_to: "演进" };
+        return map[d.type] || d.type;
+      });
+
+    // Node groups
+    var nodeEls = nodeGroup.selectAll("g")
+      .data(nodes)
+      .enter().append("g")
+      .call(d3.drag()
+        .on("start", function(event, d) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on("drag", function(event, d) {
+          d.fx = event.x;
+          d.fy = event.y;
+        })
+        .on("end", function(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        })
+      )
+      .on("mouseenter", function(event, d) {
+        tooltip.style.opacity = 1;
+        tooltip.textContent = d.name + " · " + d.category;
+        var tRect = tooltip.getBoundingClientRect();
+        var cRect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.pageX - cRect.left + 12, width - tRect.width - 10) + "px";
+        tooltip.style.top = Math.max(event.pageY - cRect.top - tRect.height - 10, 0) + "px";
+      })
+      .on("mousemove", function(event) {
+        var tRect = tooltip.getBoundingClientRect();
+        var cRect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.pageX - cRect.left + 12, width - tRect.width - 10) + "px";
+        tooltip.style.top = Math.max(event.pageY - cRect.top - tRect.height - 10, 0) + "px";
+      })
+      .on("mouseleave", function() {
+        tooltip.style.opacity = 0;
+      });
+
+    // Node circles
+    nodeEls.append("circle")
+      .attr("r", 18)
+      .attr("fill", function(d) { return catColors[d.category] || "#3b82f6"; })
+      .attr("stroke", "rgba(255,255,255,0.2)")
+      .attr("stroke-width", 2)
+      .style("filter", "drop-shadow(0 0 6px rgba(59,130,246,0.3))");
+
+    // Glow circles
+    nodeEls.insert("circle", "circle")
+      .attr("r", 24)
+      .attr("fill", "none")
+      .attr("stroke", function(d) { return catColors[d.category] || "#3b82f6"; })
+      .attr("stroke-width", 1)
+      .attr("stroke-opacity", 0.2);
+
+    // Node labels
+    nodeEls.append("text")
+      .attr("dy", 30)
+      .attr("text-anchor", "middle")
+      .attr("fill", "#e2e8f0")
+      .attr("font-size", "12px")
+      .attr("font-weight", "600")
+      .text(function(d) { return d.name.length > 10 ? d.name.slice(0,10)+"…" : d.name; });
+
+    // Tick
+    simulation.on("tick", function() {
+      linkLines
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+      linkLabels
+        .attr("x", function(d) { return (d.source.x + d.target.x) / 2; })
+        .attr("y", function(d) { return (d.source.y + d.target.y) / 2; });
+
+      nodeEls.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
+    });
+
+    // Zoom
+    var zoom = d3.zoom()
+      .scaleExtent([0.3, 3])
+      .on("zoom", function(event) {
+        nodeGroup.attr("transform", event.transform);
+        linkGroup.attr("transform", event.transform);
+      });
+    svg.call(zoom);
+
+    // Resize handler
+    window.__graphResize = function() {
+      var newRect = container.getBoundingClientRect();
+      var newW = newRect.width || 800;
+      var newH = newRect.height || 600;
+      svg.attr("width", newW).attr("height", newH);
+      simulation.force("center", d3.forceCenter(newW / 2, newH / 2));
+      simulation.alpha(0.3).restart();
+    };
+
+    window.addEventListener("resize", window.__graphResize);
+  }
+
+  /* ============================================================
+     VERIFICATION TABLE
+     ============================================================ */
+  function renderVerification() {
+    var data = [
+      { doc: "LLM 基础", type: "概念", status: "pending", rating: "-", date: "-" },
+      { doc: "Agent 架构", type: "概念", status: "pending", rating: "-", date: "-" },
+      { doc: "RAG 系统", type: "概念", status: "pending", rating: "-", date: "-" },
+      { doc: "OpenAI API 指南", type: "平台", status: "pending", rating: "-", date: "-" },
+      { doc: "Claude API 指南", type: "平台", status: "pending", rating: "-", date: "-" },
+      { doc: "DeepSeek API 指南", type: "平台", status: "pending", rating: "-", date: "-" },
+      { doc: "验真系统说明", type: "系统", status: "verified", rating: "A", date: "2026-05-07" },
+      { doc: "提示词模板", type: "模板", status: "verified", rating: "A", date: "2026-05-07" }
+    ];
+
+    var tbody = document.getElementById('verificationTableBody');
+    tbody.innerHTML = '';
+    data.forEach(function(d) {
+      var tr = document.createElement('tr');
+
+      var tdDoc = document.createElement('td');
+      tdDoc.textContent = d.doc;
+      tr.appendChild(tdDoc);
+
+      var tdType = document.createElement('td');
+      var typeBadge = document.createElement('span');
+      typeBadge.className = 'badge badge-type';
+      typeBadge.textContent = d.type;
+      tdType.appendChild(typeBadge);
+      tr.appendChild(tdType);
+
+      var tdStatus = document.createElement('td');
+      var statusBadge = document.createElement('span');
+      if (d.status === 'pending') {
+        statusBadge.className = 'badge badge-pending';
+        statusBadge.textContent = '⏳ 待验真';
+      } else {
+        statusBadge.className = 'badge badge-verified';
+        statusBadge.textContent = '✅ 已验真';
+      }
+      tdStatus.appendChild(statusBadge);
+      tr.appendChild(tdStatus);
+
+      var tdRating = document.createElement('td');
+      if (d.rating !== '-') {
+        var ratingBadge = document.createElement('span');
+        ratingBadge.className = 'badge badge-rating';
+        ratingBadge.textContent = d.rating;
+        tdRating.appendChild(ratingBadge);
+      } else {
+        tdRating.textContent = '-';
+        tdRating.style.color = '#64748b';
+      }
+      tr.appendChild(tdRating);
+
+      var tdDate = document.createElement('td');
+      tdDate.textContent = d.date;
+      tdDate.style.color = d.date === '-' ? '#64748b' : '';
+      tr.appendChild(tdDate);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ============================================================
+     PLATFORM COMPARISON
+     ============================================================ */
+  function renderPlatforms() {
+    var platforms = [
+      { name: "OpenAI", context: "128K", price: "$$$", chinese: 4, tools: 4, color: "#10b981" },
+      { name: "Anthropic", context: "200K", price: "$$$", chinese: 4, tools: 5, color: "#8b5cf6" },
+      { name: "Google", context: "1M+", price: "$$", chinese: 3, tools: 4, color: "#3b82f6" },
+      { name: "DeepSeek", context: "128K", price: "$", chinese: 5, tools: 4, color: "#f59e0b" }
+    ];
+
+    // Platform cards
+    var grid = document.getElementById('platformGrid');
+    grid.innerHTML = '';
+    platforms.forEach(function(p) {
+      var card = document.createElement('div');
+      card.className = 'platform-card';
+
+      var name = document.createElement('div');
+      name.className = 'platform-name';
+      name.style.color = p.color;
+      name.textContent = p.name;
+      card.appendChild(name);
+
+      var rows = [
+        { label: '上下文窗口', value: p.context },
+        { label: '价格水平', value: p.price },
+        { label: '中文能力', value: starString(p.chinese) },
+        { label: '工具调用', value: starString(p.tools) }
+      ];
+      rows.forEach(function(r) {
+        var row = document.createElement('div');
+        row.className = 'stat-row';
+        row.innerHTML = '<span class="stat-label">'+r.label+'</span><span class="stat-value">'+r.value+'</span>';
+        card.appendChild(row);
+      });
+      grid.appendChild(card);
+    });
+
+    // Bar chart
+    var chartEl = document.getElementById('barChart');
+    chartEl.innerHTML = '';
+
+    var metrics = [
+      { key: 'chinese', label: '中文能力', max: 5 },
+      { key: 'tools', label: '工具调用', max: 5 }
+    ];
+
+    metrics.forEach(function(m) {
+      var group = document.createElement('div');
+      group.className = 'bar-group';
+
+      var title = document.createElement('div');
+      title.className = 'bar-group-title';
+      title.textContent = m.label;
+      group.appendChild(title);
+
+      platforms.forEach(function(p) {
+        var row = document.createElement('div');
+        row.className = 'bar-row';
+
+        var label = document.createElement('div');
+        label.className = 'bar-label';
+        label.textContent = p.name;
+        row.appendChild(label);
+
+        var track = document.createElement('div');
+        track.className = 'bar-track';
+
+        var val = p[m.key];
+        var pct = (val / m.max) * 100;
+
+        var fill = document.createElement('div');
+        fill.className = 'bar-fill';
+        fill.style.width = '0%';
+        fill.style.background = 'linear-gradient(90deg, '+p.color+', '+p.color+'88)';
+
+        var starStr = '';
+        for (var i = 0; i < val; i++) starStr += '★';
+        for (var j = val; j < m.max; j++) starStr += '☆';
+        fill.textContent = '';
+        track.appendChild(fill);
+        row.appendChild(track);
+
+        var value = document.createElement('div');
+        value.className = 'bar-value';
+        value.innerHTML = '<span class="stars">'+starStr+'</span>';
+        row.appendChild(value);
+
+        group.appendChild(row);
+
+        // Animate after a tick
+        setTimeout(function() {
+          fill.style.width = pct + '%';
+        }, 200);
+      });
+
+      chartEl.appendChild(group);
+    });
+
+    // Context window bar
+    var ctxGroup = document.createElement('div');
+    ctxGroup.className = 'bar-group';
+    var ctxTitle = document.createElement('div');
+    ctxTitle.className = 'bar-group-title';
+    ctxTitle.textContent = '上下文窗口对比';
+    ctxGroup.appendChild(ctxTitle);
+
+    var ctxData = [
+      { name: "OpenAI", val: 128, color: "#10b981" },
+      { name: "Anthropic", val: 200, color: "#8b5cf6" },
+      { name: "Google", val: 1000, color: "#3b82f6" },
+      { name: "DeepSeek", val: 128, color: "#f59e0b" }
+    ];
+    var maxCtx = 1000;
+
+    ctxData.forEach(function(p) {
+      var row = document.createElement('div');
+      row.className = 'bar-row';
+
+      var label = document.createElement('div');
+      label.className = 'bar-label';
+      label.textContent = p.name;
+      row.appendChild(label);
+
+      var track = document.createElement('div');
+      track.className = 'bar-track';
+      var fill = document.createElement('div');
+      fill.className = 'bar-fill';
+      fill.style.width = '0%';
+      fill.style.background = 'linear-gradient(90deg, '+p.color+', '+p.color+'88)';
+      track.appendChild(fill);
+      row.appendChild(track);
+
+      var value = document.createElement('div');
+      value.className = 'bar-value';
+      var displayVal = p.val >= 1000 ? (p.val/1000).toFixed(0)+'M' : p.val+'K';
+      value.textContent = displayVal;
+      row.appendChild(value);
+
+      ctxGroup.appendChild(row);
+
+      setTimeout(function() {
+        fill.style.width = (p.val / maxCtx * 100) + '%';
+      }, 300);
+    });
+    chartEl.appendChild(ctxGroup);
+  }
+
+  function starString(n) {
+    var s = '';
+    for (var i = 0; i < n; i++) s += '★';
+    for (var j = n; j < 5; j++) s += '☆';
+    return '<span class="stars">'+s+'</span>';
+  }
+
+  /* ============================================================
+     TIMELINE
+     ============================================================ */
+  function renderTimeline() {
+    var data = [
+      { year: "2017", event: "Transformer 论文发表" },
+      { year: "2018", event: "GPT-1" },
+      { year: "2020", event: "GPT-3" },
+      { year: "2022", event: "ChatGPT" },
+      { year: "2023", event: "GPT-4, Claude 3" },
+      { year: "2024", event: "MCP 协议, Agent 元年" },
+      { year: "2025", event: "DeepSeek, Claude 4, Gemini 2.5" },
+      { year: "2026", event: "Agent 生态成熟" }
+    ];
+
+    var container = document.getElementById('timelineContainer');
+    container.innerHTML = '';
+    data.forEach(function(d) {
+      var item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = '<div class="timeline-year">'+d.year+'</div><div class="timeline-event">'+d.event+'</div>';
+      container.appendChild(item);
+    });
+  }
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+  renderGraph();
+  renderVerification();
+  renderPlatforms();
+  renderTimeline();
+
+})();
+</script>
+
+</body>
+</html>
