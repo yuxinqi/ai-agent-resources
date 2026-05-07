@@ -283,9 +283,7 @@ ai-agent-resources/
 
 - **项目地址**：https://github.com/yuxinqi/ai-agent-resources
 - **问题反馈**：通过 GitHub Issues 提交
-- **合作联系**：[添加联系方式]
-
----
+- **合作联系**：[yuxinqi@vip.qq.com]
 
 *最后更新时间：2026-05-07*
 
