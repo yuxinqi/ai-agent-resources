@@ -1,0 +1,49 @@
+id: [填写内容]
+title: [填写内容]
+type: prompt
+version: 0.1.0
+language: [填写内容]
+status: draft
+
+use_case:
+  - [填写内容]
+
+input_schema:
+  required:
+    - [填写内容]
+  optional:
+    - [填写内容]
+  properties:
+    [填写内容]:
+      type: [填写内容]
+      description: [填写内容]
+
+prompt_text: |
+  [填写内容]
+
+evaluation:
+  test_cases:
+    - name: [填写内容]
+      input:
+        [填写内容]: [填写内容]
+      expected_output: [填写内容]
+  metrics:
+    accuracy:
+      target: [填写内容]
+      threshold: [填写内容]
+    consistency:
+      target: [填写内容]
+      threshold: [填写内容]
+
+verification:
+  evidence_level: L0
+  practical_rating: D
+  last_verified: [填写内容]
+  valid_until: [填写内容]
+  verified_by: [填写内容]
+
+relations:
+  related:
+    - [填写内容]
+  depends_on:
+    - [填写内容]

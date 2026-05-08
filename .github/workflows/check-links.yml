@@ -1,0 +1,50 @@
+name: Check Links
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+  schedule:
+    - cron: '0 2 * * 1'  # 每周一 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-internal-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 检查内部链接完整性
+        run: python3 scripts/check_links.py --ci
+
+  check-external-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖
+        run: pip install requests
+
+      - name: 检查外部链接可用性
+        run: python3 scripts/check_links.py --external --ci
+        continue-on-error: true
+
+      - name: 生成报告
+        if: always()
+        run: |
+          echo "## 外部链接检查结果" >> $GITHUB_STEP_SUMMARY
+          echo "外部链接检查完成，详见上方日志" >> $GITHUB_STEP_SUMMARY

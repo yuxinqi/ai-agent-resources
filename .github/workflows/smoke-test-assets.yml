@@ -1,0 +1,87 @@
+name: Smoke Test Assets
+
+on:
+  pull_request:
+    paths:
+      - 'assets/**'
+      - 'examples/**'
+      - 'benchmarks/**'
+  push:
+    branches: [master]
+    paths:
+      - 'assets/**'
+      - 'examples/**'
+      - 'benchmarks/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 验证 Assets 目录结构
+        run: |
+          echo "## Assets 结构检查" >> $GITHUB_STEP_SUMMARY
+          if [ -d "assets" ]; then
+            find assets -type f | head -50
+            echo "✅ assets 目录存在" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ assets 目录不存在（可能是新仓库）" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 验证 Examples 目录结构
+        run: |
+          if [ -d "examples" ]; then
+            find examples -type f | head -50
+            echo "✅ examples 目录存在" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ examples 目录不存在（可能是新仓库）" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 验证 Benchmarks Frontmatter
+        run: |
+          errors=0
+          if [ -d "benchmarks" ]; then
+            for f in $(find benchmarks -name "*.md" -not -name "README.md"); do
+              if ! head -1 "$f" | grep -q "^---"; then
+                echo "❌ $f: 缺少 frontmatter"
+                errors=$((errors + 1))
+              fi
+            done
+          fi
+          if [ $errors -eq 0 ]; then
+            echo "✅ 所有 benchmark 文件包含 frontmatter" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ $errors 个文件缺少 frontmatter" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: 验证 Markdown 语法
+        run: |
+          errors=0
+          for dir in assets examples benchmarks; do
+            if [ -d "$dir" ]; then
+              for f in $(find "$dir" -name "*.md"); do
+                # Check for broken markdown links [text](missing-file)
+                while IFS= read -r link; do
+                  target=$(echo "$link" | sed -n 's/\[.*\](\([^)]*\))/\1/p')
+                  if [ -n "$target" ] && [[ ! "$target" =~ ^http ]] && [[ ! "$target" =~ ^# ]]; then
+                    dir_of_f=$(dirname "$f")
+                    if [ ! -f "$dir_of_f/$target" ]; then
+                      echo "⚠️ $f: 断裂链接 -> $target"
+                    fi
+                  fi
+                done < <(grep -oE '\[[^\]]*\]\([^)]*\)' "$f" 2>/dev/null || true)
+              done
+            fi
+          done
+          echo "✅ Markdown 链接检查完成" >> $GITHUB_STEP_SUMMARY

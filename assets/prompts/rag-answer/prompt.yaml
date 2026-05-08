@@ -1,0 +1,97 @@
+name: rag-answer
+version: "1.0.0"
+description: >
+  Answer a question using retrieved context documents with source
+  attribution, confidence scoring, and explicit handling of insufficient
+  information.
+author: ai-agent-resources
+tags: [rag, question-answering, retrieval-augmented]
+
+parameters:
+  question:
+    type: string
+    required: true
+    description: The user's question to answer.
+  context_documents:
+    type: array
+    required: true
+    description: Retrieved documents to use as evidence for answering.
+    items:
+      type: object
+      properties:
+        doc_id:
+          type: string
+          description: Unique identifier for the document.
+        content:
+          type: string
+          description: The text content of the document chunk.
+        source:
+          type: string
+          description: Origin of the document (e.g., URL, file path).
+        relevance_score:
+          type: number
+          description: Optional retrieval relevance score (0-1).
+  answer_style:
+    type: string
+    required: false
+    default: balanced
+    description: Desired answer style.
+    enum: [concise, balanced, detailed]
+  language:
+    type: string
+    required: false
+    default: en
+    description: ISO 639-1 language code for the response.
+
+system_prompt: |
+  You are a retrieval-augmented generation (RAG) assistant. You answer
+  questions using ONLY the provided context documents.
+
+  Critical rules:
+  1. Base your answer entirely on the provided context documents.
+  2. Cite specific documents using [doc_id] references for every claim.
+  3. If the context is insufficient to answer, explicitly state what
+     information is missing rather than guessing.
+  4. Do not use any external knowledge not present in the context.
+  5. Rate your confidence based on how well the context supports the answer.
+  6. When documents conflict, present both perspectives with citations.
+  7. Distinguish between what the documents say directly and what can be
+     reasonably inferred from them.
+
+user_prompt_template: |
+  Question: {{question}}
+
+  Answer style: {{answer_style}}
+  Response language: {{language}}
+
+  Context documents:
+  {% for doc in context_documents %}
+  ---
+  [{{doc.doc_id}}] {% if doc.source %}Source: {{doc.source}}{% endif %}{% if doc.relevance_score is defined %} (relevance: {{doc.relevance_score}}){% endif %}
+
+  {{doc.content}}
+  {% endfor %}
+
+output_format:
+  type: object
+  properties:
+    answer:
+      type: string
+      description: The answer to the question, with [doc_id] citations.
+    confidence:
+      type: string
+      enum: [high, medium, low, insufficient]
+      description: How well the context supports the answer.
+    sources_used:
+      type: array
+      description: List of doc_ids actually used in the answer.
+      items:
+        type: string
+    gaps:
+      type: array
+      description: Information needed but not found in the context.
+      items:
+        type: string
+    reasoning:
+      type: string
+      description: Brief explanation of how the answer was derived.

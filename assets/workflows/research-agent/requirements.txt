@@ -1,0 +1,15 @@
+# Research Agent dependencies
+# No external dependencies required — demo uses only Python stdlib.
+# For production use, consider:
+
+# OpenAI Python client (for robust API interaction)
+openai>=1.0.0
+
+# HTTP requests (alternative to urllib)
+requests>=2.31.0
+
+# Jinja2 for template rendering
+Jinja2>=3.1.0
+
+# PyYAML for workflow config parsing
+PyYAML>=6.0

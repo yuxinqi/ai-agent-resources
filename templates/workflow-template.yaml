@@ -1,0 +1,108 @@
+id: [填写内容]
+title: [填写内容]
+type: workflow
+version: 0.1.0
+language: [填写内容]
+status: draft
+
+description: |
+  [填写内容]
+
+nodes:
+  - id: input
+    type: input
+    name: [填写内容]
+    input:
+      [填写内容]: [填写内容]
+    output:
+      [填写内容]: [填写内容]
+
+  - id: step_1
+    type: process
+    name: [填写内容]
+    tool: [填写内容]
+    input:
+      [填写内容]: [填写内容]
+    output:
+      [填写内容]: [填写内容]
+    timeout_ms: [填写内容]
+
+  - id: decision_1
+    type: decision
+    name: [填写内容]
+    input:
+      [填写内容]: [填写内容]
+    output:
+      [填写内容]: [填写内容]
+
+  - id: step_2
+    type: process
+    name: [填写内容]
+    tool: [填写内容]
+    input:
+      [填写内容]: [填写内容]
+    output:
+      [填写内容]: [填写内容]
+
+  - id: output
+    type: output
+    name: [填写内容]
+    input:
+      [填写内容]: [填写内容]
+    output:
+      [填写内容]: [填写内容]
+
+edges:
+  - from: input
+    to: step_1
+
+  - from: step_1
+    to: decision_1
+
+  - from: decision_1
+    to: step_2
+    condition: [填写内容]
+
+  - from: decision_1
+    to: output
+    condition: [填写内容]
+
+  - from: step_2
+    to: output
+
+evaluation:
+  test_cases:
+    - name: [填写内容]
+      input:
+        [填写内容]: [填写内容]
+      expected_output:
+        [填写内容]: [填写内容]
+  metrics:
+    task_success_rate:
+      target: [填写内容]
+      threshold: [填写内容]
+    step_completion_rate:
+      target: [填写内容]
+      threshold: [填写内容]
+    failure_recovery:
+      target: [填写内容]
+      threshold: [填写内容]
+    avg_duration:
+      target_ms: [填写内容]
+      max_ms: [填写内容]
+    human_interventions:
+      target: [填写内容]
+      max: [填写内容]
+
+verification:
+  evidence_level: L0
+  practical_rating: D
+  last_verified: [填写内容]
+  valid_until: [填写内容]
+  verified_by: [填写内容]
+
+relations:
+  related:
+    - [填写内容]
+  depends_on:
+    - [填写内容]

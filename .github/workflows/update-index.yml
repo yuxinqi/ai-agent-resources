@@ -1,0 +1,76 @@
+name: Update Index & Deploy Pages
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'verification/**'
+      - 'visualization/**'
+      - 'scripts/**'
+      - 'benchmarks/**'
+      - 'assets/**'
+      - 'examples/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 生成 INDEX.md
+        run: python3 scripts/generate-index.py
+
+      - name: 生成 Badges
+        run: python3 scripts/generate_badges.py
+
+      - name: 构建 Knowledge Graph
+        run: python3 scripts/build_graph.py
+
+      - name: 提交更新 [skip ci]
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add INDEX.md visualization/graph-data.json badges/
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "无需更新"
+          else
+            git commit -m "chore: 自动更新 INDEX.md, badges, graph-data [skip ci]"
+            git push
+          fi
+
+  deploy-pages:
+    needs: update-index
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 设置 Pages
+        uses: actions/configure-pages@v4
+
+      - name: 上传可视化页面
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: visualization
+
+      - name: 部署到 Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

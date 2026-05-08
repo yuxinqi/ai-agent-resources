@@ -1,0 +1,338 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-agent-resources/verification/schema/verification.schema.json",
+  "title": "Verification Report",
+  "description": "Schema for verification reports of AI agent assets (prompts, skills, workflows, platforms, tools)",
+  "type": "object",
+  "required": [
+    "id",
+    "object_type",
+    "object_id",
+    "verified_date",
+    "verified_by",
+    "environment",
+    "evidence_level",
+    "practical_rating"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the verification report",
+      "pattern": "^VR-[a-zA-Z0-9_-]+$"
+    },
+    "object_type": {
+      "type": "string",
+      "description": "Type of the object being verified",
+      "enum": ["prompt", "skill", "workflow", "platform", "tool"]
+    },
+    "object_id": {
+      "type": "string",
+      "description": "Identifier of the object being verified"
+    },
+    "verified_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when the verification was performed"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Person or system that performed the verification"
+    },
+    "environment": {
+      "type": "object",
+      "description": "Environment in which the verification was conducted",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "description": "Platform name and version"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model name and version used"
+        },
+        "runtime": {
+          "type": "string",
+          "description": "Runtime environment details"
+        },
+        "configuration": {
+          "type": "object",
+          "description": "Additional configuration parameters",
+          "additionalProperties": true
+        }
+      }
+    },
+    "evidence_level": {
+      "type": "string",
+      "description": "Evidence level indicating the rigor of verification",
+      "enum": ["L0", "L1", "L2", "L3", "L4"],
+      "default": "L0"
+    },
+    "practical_rating": {
+      "type": "string",
+      "description": "Practical rating based on real-world performance",
+      "enum": ["A", "B", "C", "D"],
+      "default": "D"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date",
+      "description": "Date until which this verification is considered valid"
+    },
+    "is_recommended": {
+      "type": "boolean",
+      "description": "Whether this asset is recommended for production use",
+      "default": false
+    },
+    "test_tasks": {
+      "type": "array",
+      "description": "List of test tasks executed during verification",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "description", "expected_outcome"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Unique identifier for the test task"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the test task"
+          },
+          "expected_outcome": {
+            "type": "string",
+            "description": "Expected outcome of the test task"
+          }
+        }
+      }
+    },
+    "test_inputs": {
+      "type": "array",
+      "description": "Inputs used during testing",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "input"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Reference to the test task"
+          },
+          "input": {
+            "description": "The input data for the test",
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "actual_outputs": {
+      "type": "array",
+      "description": "Actual outputs observed during testing",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "output"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Reference to the test task"
+          },
+          "output": {
+            "description": "The actual output observed",
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Quantitative metrics from the verification",
+      "properties": {
+        "accuracy": {
+          "type": "number",
+          "description": "Accuracy score (0-1)",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "success_rate": {
+          "type": "number",
+          "description": "Success rate (0-1)",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "latency_p50": {
+          "type": "number",
+          "description": "P50 latency in milliseconds"
+        },
+        "latency_p95": {
+          "type": "number",
+          "description": "P95 latency in milliseconds"
+        },
+        "latency_p99": {
+          "type": "number",
+          "description": "P99 latency in milliseconds"
+        },
+        "custom": {
+          "type": "object",
+          "description": "Custom metrics specific to the asset type",
+          "additionalProperties": true
+        }
+      }
+    },
+    "successes": {
+      "type": "array",
+      "description": "List of successful test outcomes",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "description"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Reference to the test task"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what succeeded"
+          }
+        }
+      }
+    },
+    "failures": {
+      "type": "array",
+      "description": "List of failed test outcomes",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "description"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Reference to the test task"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what failed"
+          },
+          "severity": {
+            "type": "string",
+            "description": "Severity of the failure",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "root_cause": {
+            "type": "string",
+            "description": "Root cause of the failure"
+          }
+        }
+      }
+    },
+    "cost_and_latency": {
+      "type": "object",
+      "description": "Cost and latency information from the verification",
+      "properties": {
+        "total_cost": {
+          "type": "number",
+          "description": "Total cost incurred during verification (USD)"
+        },
+        "cost_per_task": {
+          "type": "number",
+          "description": "Average cost per task (USD)"
+        },
+        "avg_latency_ms": {
+          "type": "number",
+          "description": "Average latency in milliseconds"
+        },
+        "token_usage": {
+          "type": "object",
+          "description": "Token usage breakdown",
+          "properties": {
+            "prompt_tokens": {
+              "type": "integer",
+              "description": "Total prompt tokens used"
+            },
+            "completion_tokens": {
+              "type": "integer",
+              "description": "Total completion tokens used"
+            },
+            "total_tokens": {
+              "type": "integer",
+              "description": "Total tokens used"
+            }
+          }
+        }
+      }
+    },
+    "risks_and_limitations": {
+      "type": "array",
+      "description": "Risks and limitations identified during verification",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the risk or limitation"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "mitigation": {
+            "type": "string",
+            "description": "Suggested mitigation strategy"
+          }
+        }
+      }
+    },
+    "reproduction_steps": {
+      "type": "array",
+      "description": "Steps to reproduce the verification",
+      "items": {
+        "type": "object",
+        "required": ["step", "description"],
+        "properties": {
+          "step": {
+            "type": "integer",
+            "description": "Step number"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the step"
+          },
+          "command": {
+            "type": "string",
+            "description": "Command to execute (if applicable)"
+          },
+          "expected_result": {
+            "type": "string",
+            "description": "Expected result of this step"
+          }
+        }
+      }
+    },
+    "next_verification_plan": {
+      "type": "object",
+      "description": "Plan for the next verification cycle",
+      "properties": {
+        "scheduled_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Scheduled date for next verification"
+        },
+        "scope": {
+          "type": "string",
+          "description": "Scope of the next verification"
+        },
+        "focus_areas": {
+          "type": "array",
+          "description": "Areas to focus on in the next verification",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes for the next verification"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

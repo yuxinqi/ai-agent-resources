@@ -1,92 +1,166 @@
-# AI Agent Resources — 开放、可验真的 AI 资料知识库
+# AI Agent Evidence Hub
 
-> **让每一条 AI 知识都有据可查、有时可依、有源可溯。**
+> 让每一个 AI Agent 实践都有路径可循、有代码可跑、有证据可查、有结果可复现。
 
-AI & Agent 资料分享项目 - 整理概念与资料，支持专业化检索、验真机制和流程化整理。
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Last Verified](https://img.shields.io/badge/Last_Verified-2026--05--08-green.svg)]()
+[![Metadata Check](https://img.shields.io/badge/Metadata_Check-passing-brightgreen.svg)]()
+[![Link Check](https://img.shields.io/badge/Link_Check-passing-brightgreen.svg)]()
+[![Verified Assets](https://img.shields.io/badge/Verified_Assets-7-orange.svg)]()
+[![Contributors](https://img.shields.io/badge/Contributors-welcome-purple.svg)]()
 
 ---
 
-## 🧭 项目理念
+## 这个项目解决什么问题
 
-AI 与 Agent 技术正以史无前例的速度演进。信息爆炸的同时也带来了三个核心困境：
+AI Agent 领域正在经历爆发式增长，但实践者普遍面临四个核心困境：
 
-| 困境 | 我们的解法 |
-|------|-----------|
-| **真伪难辨** — 概念、工具、API 频繁更新，旧信息误导性极强 | 建立 **验真机制**，每条关键信息附带验真时间、效果评级、验证流程 |
-| **碎片化** — 资料散落于博客、文档、推文、论文之间 | **结构化整理** + **关系图谱**，将孤立知识点连接为知识网络 |
-| **上手难** — 从概念到实践的门槛高，信息查找成本大 | **流程化组织**，按"从入门到应用"的路径编排资料，降低使用难度 |
+1. **信息更新太快** — 今天能用的 API，明天可能就变了；上周的最佳实践，这周可能已经过时。你收藏的教程，可能正在悄悄误导你。
+2. **概念混乱不堪** — Agent、Workflow、Tool、Skill、MCP、RAG……每个人都在用这些词，但每个人说的不一定是同一件事。概念之间是什么关系？哪些是基础？哪些是衍生？
+3. **工具频繁变动** — LangChain 昨天还在用这个接口，今天换了那个；新框架每周冒出来，选型全靠运气。跟着某个框架走，很可能过两个月就要推倒重来。
+4. **难以复现结果** — 博客文章说"我做了个 Agent 效果很好"，但你照着做就是跑不通。没有环境、没有版本、没有完整代码，只有截图和结论。
 
-## 📦 内容体系
+**AI Agent Evidence Hub 的目标：不只是收藏链接，而是让每一条知识都经得起验证，让每一个实践都能被复现。**
+
+---
+
+## 和普通 Awesome List 有什么不同
+
+| 对比项 | 普通 Awesome List | 本项目 |
+|--------|-------------------|--------|
+| 内容形式 | 链接集合 + 一句话描述 | 结构化文档 + 验真报告 + 可运行代码 |
+| 可信度 | 无验证，内容可能已过时 | 每条关键信息附带验真时间、评级、验证流程 |
+| 实用性 | 知道"有什么"，不知道"怎么用" | 按场景编排实践路径，提供可运行的 Playbook |
+| 更新机制 | 依赖人工维护，容易腐烂 | 验真周期驱动更新，CI 自动检查链接与元数据 |
+| 使用路径 | 浏览 → 离开 | 学习概念 → 跟着实践 → 验证结果 → 贡献回社区 |
+
+---
+
+## 你可以用它做什么
+
+- 按照实践路径从零搭建一个 Tool-Using Agent，每一步都有代码可参考、有结果可验证
+- 搭建一个 RAG 系统，从概念理解到向量数据库选型到效果评估，完整闭环
+- 对比主流 Agent 框架的实际表现，不只是看 GitHub Star 数，而是看验真报告里的真实数据
+- 快速验证一条信息的时效性——每个知识点都有验真日期和评级
+- 按图索骥地学习 AI Agent 概念——三层架构让概念之间关系清晰可见
+- 贡献你的实践结果，帮助后来者少踩坑
+
+---
+
+## 三层架构
+
+本项目采用 **Knowledge → Practice → Evidence** 三层架构组织内容：
 
 ```
-ai-agent-resources/
-├── docs/               # 📝 核心文档
-│   ├── concepts/       # AI/Agent 核心概念（含关系图谱索引）
-│   ├── platforms/      # 主流 API 平台申请与使用指南
-│   ├── prompts/        # 提示词工程资源
-│   ├── skills/         # Skills / Tools 资源
-│   ├── tools/          # 开发工具与框架
-│   └── workflows/      # 流程化实践指南
-├── verification/       # ✅ 验真中心
-│   ├── prompts/        # 提示词验真报告
-│   ├── skills/         # Skills 验真报告
-│   └── platforms/      # 平台信息验真
-├── visualization/      # 📊 HTML 可视化
-│   ├── index.html      # 可视化总入口
-│   └── ...             # 更多交互式可视化
-└── scripts/            # 🔧 辅助脚本
+┌─────────────────────────────────────────────────────┐
+│                 Evidence Layer                       │
+│           验真报告 · 效果评级 · 复现记录              │
+│     "这条信息最后在什么时候、什么环境下验证通过"        │
+├─────────────────────────────────────────────────────┤
+│                 Practice Layer                       │
+│        Playbook · 代码示例 · 场景实战指南             │
+│       "照着做就能跑通，跑通了就有证据"                 │
+├─────────────────────────────────────────────────────┤
+│                 Knowledge Layer                      │
+│       概念文档 · 框架对比 · API 平台指南              │
+│      "理解概念是正确实践的前提"                        │
+└─────────────────────────────────────────────────────┘
 ```
 
-## ✨ 核心特色
+- **Knowledge Layer** — 稳定的基础知识和概念，变更频率低。包括 AI/Agent 核心概念、API 平台申请指南、提示词工程基础等。
+- **Practice Layer** — 面向场景的实践路径，按"跟着做就能跑通"的标准编写。包括 Tool-Using Agent Playbook、RAG Agent Playbook、框架对比实战等。
+- **Evidence Layer** — 所有内容的可信度保障。每条关键信息都有验真报告，标注验证时间、环境、评级和完整流程。
 
-### ✅ 验真系统 (Verification System)
+---
 
-每条信息附带 **验真标签**：
+## 快速开始
 
-```
-📅 验真日期：2026-05-07
-📋 验真流程：[步骤说明]
-⭐ 效果评级：[A/B/C/D]
-🔗 参考来源：[链接]
-```
-
-详细的验真机制包括：**背景与挑战**（信息失效快、真假难辨、版本混乱）、**验真流程**（环境准备 → 执行测试 → 效果评估 → 记录归档）、**验真周期**（高频每月、中频每季度、低频每半年）。
-
-### 🔗 相关性分析
-
-通过文档内嵌的关系标记（`related`, `depends_on`, `follows`）建立知识图谱，支持可视化浏览。
-
-### 🧩 流程化整理
-
-按使用流程组织资料，降低学习与应用门槛：
-
-- **入门流程**：从零开始的学习路径
-- **应用流程**：特定场景的实现步骤
-- **开发流程**：Agent 开发的完整工作流
-- **优化流程**：性能调优和迭代改进
-
-### 🔎 自动索引 (INDEX)
-
-项目提供自动生成的 [INDEX.md](INDEX.md)，按分类列出所有文档及其验真状态，方便快速定位内容。
-
-## 🚀 快速开始
+| 我想…… | 去这里 |
+|---------|--------|
+| 了解项目整体结构和使用方式 | [Getting Started](docs/getting-started.md) |
+| 搭建一个能调用工具的 Agent | [Tool-Using Agent Playbook](docs/playbooks/tool-using-agent.md) |
+| 搭建一个 RAG 检索增强系统 | [RAG Agent Playbook](docs/playbooks/rag-agent.md) |
+| 对比主流 Agent 框架的优劣 | [框架对比](docs/playbooks/framework-comparison.md) |
+| 了解验真机制和验证流程 | [验真中心](verification/README.md) |
 
 ```bash
-# 克隆项目
 git clone https://github.com/yuxinqi/ai-agent-resources.git
 cd ai-agent-resources
 
-# （可选）启动本地可视化
+# 启动本地可视化
 python3 -m http.server 8000
-# 打开浏览器访问 http://localhost:8000/visualization/
+# 浏览器打开 http://localhost:8000/visualization/
 ```
 
-## 🤝 贡献指南
+---
 
-- **资料提交**：Fork 仓库 → 按模板编写 → 提交 PR
-- **验真贡献**：选择待验证资料 → 按流程测试 → 填写报告
-- **质量要求**：来源可靠、格式规范、信息完整、及时更新
+## 项目结构
 
-## 📄 许可
+```
+ai-agent-resources/
+├── docs/
+│   ├── concepts/          # Knowledge Layer — 核心概念
+│   │   ├── llm-basics.md
+│   │   ├── agent-architecture.md
+│   │   ├── rag-retrieval.md
+│   │   ├── function-calling.md
+│   │   ├── mcp-protocol.md
+│   │   ├── embedding-vector-db.md
+│   │   └── fine-tuning.md
+│   ├── platforms/         # Knowledge Layer — API 平台指南
+│   │   ├── openai-api-guide.md
+│   │   ├── anthropic-claude-guide.md
+│   │   ├── google-gemini-guide.md
+│   │   ├── deepseek-api-guide.md
+│   │   └── platform-comparison.md
+│   ├── prompts/           # Knowledge Layer — 提示词工程
+│   │   ├── prompt-engineering-basics.md
+│   │   ├── chain-of-thought.md
+│   │   ├── prompt-templates.md
+│   │   └── system-prompt-best-practices.md
+│   ├── skills/            # Knowledge Layer — Skills 资源
+│   │   ├── skills-overview.md
+│   │   ├── writing-skills.md
+│   │   ├── code-review-skill.md
+│   │   ├── data-extraction-skill.md
+│   │   └── summarization-skill.md
+│   ├── tools/             # Knowledge Layer — 工具与框架
+│   │   └── langchain-intro.md
+│   ├── playbooks/         # Practice Layer — 场景实战 Playbook
+│   │   ├── tool-using-agent.md
+│   │   ├── rag-agent.md
+│   │   └── framework-comparison.md
+│   ├── workflows/         # Knowledge Layer — 流程化指南
+│   │   ├── ai-app-development.md
+│   │   ├── api-selection-migration.md
+│   │   ├── build-rag-system.md
+│   │   └── prompt-engineering-workflow.md
+│   └── getting-started.md # 快速入门
+├── verification/          # Evidence Layer — 验真中心
+│   ├── README.md
+│   ├── prompts/
+│   ├── platforms/
+│   └── skills/
+├── visualization/         # 可视化
+│   └── index.html
+├── scripts/               # 辅助脚本
+├── INDEX.md               # 自动生成的总索引
+├── CONTRIBUTING.md
+├── ROADMAP.md
+├── CHANGELOG.md
+└── LICENSE
+```
 
-MIT License
+---
+
+## 贡献指南
+
+我们欢迎各种形式的贡献：新增内容、更新验真、修正错误、完善实践路径。
+
+详细规范请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+---
+
+## 许可
+
+本项目基于 [MIT License](LICENSE) 开源。

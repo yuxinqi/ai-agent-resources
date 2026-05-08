@@ -1,0 +1,212 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-agent-resources/verification/schema/prompt.schema.json",
+  "title": "Prompt Asset",
+  "description": "Schema for prompt assets in the AI agent resources library",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "type",
+    "version",
+    "language",
+    "status",
+    "prompt_text"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the prompt asset",
+      "pattern": "^P-[a-zA-Z0-9_-]+$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title of the prompt"
+    },
+    "type": {
+      "type": "string",
+      "description": "Asset type, always 'prompt'",
+      "const": "prompt"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the prompt asset",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "language": {
+      "type": "string",
+      "description": "Language code of the prompt (e.g., zh, en)"
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the prompt asset",
+      "enum": ["draft", "experimental", "verified", "deprecated", "retired"]
+    },
+    "use_case": {
+      "type": "array",
+      "description": "Use cases this prompt addresses",
+      "items": {
+        "type": "string"
+      }
+    },
+    "input_schema": {
+      "type": "object",
+      "description": "Schema for inputs expected by this prompt",
+      "properties": {
+        "required": {
+          "type": "array",
+          "description": "Required input fields",
+          "items": {
+            "type": "string"
+          }
+        },
+        "optional": {
+          "type": "array",
+          "description": "Optional input fields",
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "description": "Detailed property definitions",
+          "additionalProperties": true
+        }
+      }
+    },
+    "prompt_text": {
+      "type": "string",
+      "description": "The actual prompt text content"
+    },
+    "evaluation": {
+      "type": "object",
+      "description": "Evaluation criteria and test cases",
+      "properties": {
+        "test_cases": {
+          "type": "array",
+          "description": "Test cases for evaluating the prompt",
+          "items": {
+            "type": "object",
+            "required": ["name", "input", "expected_output"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the test case"
+              },
+              "input": {
+                "description": "Input for the test case",
+                "type": "object",
+                "additionalProperties": true
+              },
+              "expected_output": {
+                "type": "string",
+                "description": "Expected output description"
+              },
+              "tolerance": {
+                "type": "string",
+                "description": "Acceptable deviation from expected output"
+              }
+            }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Metrics for evaluating prompt performance",
+          "properties": {
+            "accuracy": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "number",
+                  "description": "Target accuracy score"
+                },
+                "threshold": {
+                  "type": "number",
+                  "description": "Minimum acceptable accuracy score"
+                }
+              }
+            },
+            "consistency": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "number",
+                  "description": "Target consistency score"
+                },
+                "threshold": {
+                  "type": "number",
+                  "description": "Minimum acceptable consistency score"
+                }
+              }
+            },
+            "custom": {
+              "type": "object",
+              "description": "Custom evaluation metrics",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "description": "Verification status and history",
+      "properties": {
+        "evidence_level": {
+          "type": "string",
+          "description": "Current evidence level",
+          "enum": ["L0", "L1", "L2", "L3", "L4"],
+          "default": "L0"
+        },
+        "practical_rating": {
+          "type": "string",
+          "description": "Current practical rating",
+          "enum": ["A", "B", "C", "D"],
+          "default": "D"
+        },
+        "last_verified": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of last verification"
+        },
+        "valid_until": {
+          "type": "string",
+          "format": "date",
+          "description": "Date until which verification is valid"
+        },
+        "verified_by": {
+          "type": "string",
+          "description": "Person or system that performed verification"
+        },
+        "verification_reports": {
+          "type": "array",
+          "description": "List of verification report references",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "relations": {
+      "type": "object",
+      "description": "Relations to other assets",
+      "properties": {
+        "related": {
+          "type": "array",
+          "description": "Related asset IDs",
+          "items": {
+            "type": "string"
+          }
+        },
+        "depends_on": {
+          "type": "array",
+          "description": "Asset IDs this prompt depends on",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

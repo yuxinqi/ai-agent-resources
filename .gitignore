@@ -27,3 +27,13 @@ dist/
 build/
 .history/
 node_modules/
+
+# Badges (auto-generated)
+badges/
+
+# Graph data (auto-generated)
+# visualization/graph-data.json is tracked
+
+# Temporary
+*.tmp
+*.bak

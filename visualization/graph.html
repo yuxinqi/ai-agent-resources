@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 资源 — 增强版知识图谱</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#0a0e1a;--bg-secondary:#111827;--bg-card:#1a1f36;
+  --accent-blue:#3b82f6;--accent-purple:#8b5cf6;--accent-cyan:#06b6d4;
+  --accent-green:#10b981;--accent-orange:#f59e0b;--accent-red:#ef4444;
+  --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;
+  --border-color:#1e293b;--radius:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.6;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.05) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+.header{position:relative;z-index:1;text-align:center;padding:48px 20px 32px;background:linear-gradient(180deg,rgba(59,130,246,.1) 0%,transparent 100%)}
+.header h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple),var(--accent-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;margin-bottom:6px}
+.header .subtitle{font-size:1rem;color:var(--text-secondary);letter-spacing:4px;font-weight:300}
+
+.controls{position:relative;z-index:1;display:flex;justify-content:center;gap:12px;padding:0 20px;margin-bottom:24px;flex-wrap:wrap;align-items:center}
+.controls label{font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;gap:6px}
+.controls select,.controls input{background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:6px 12px;font-size:.85rem}
+.controls button{background:rgba(59,130,246,.15);color:var(--accent-blue);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 16px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .25s}
+.controls button:hover{background:rgba(59,130,246,.25);border-color:var(--accent-blue)}
+.controls button.active{background:rgba(59,130,246,.3);border-color:var(--accent-blue)}
+
+.graph-container{position:relative;z-index:1;max-width:1400px;margin:0 auto 48px;padding:0 20px}
+.graph-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);overflow:hidden}
+.graph-wrapper{width:100%;height:700px;position:relative;background:radial-gradient(ellipse at center,rgba(59,130,246,.03) 0%,transparent 70%)}
+.graph-wrapper svg{width:100%;height:100%}
+.graph-tooltip{position:absolute;padding:10px 16px;background:rgba(15,23,42,.95);border:1px solid rgba(59,130,246,.4);border-radius:8px;color:var(--text-primary);font-size:.85rem;pointer-events:none;opacity:0;transition:opacity .2s;backdrop-filter:blur(8px);z-index:10;max-width:300px}
+.graph-tooltip .tt-name{font-weight:700;margin-bottom:4px}
+.graph-tooltip .tt-meta{color:var(--text-muted);font-size:.8rem}
+
+.sidebar{position:relative;z-index:1;max-width:1400px;margin:0 auto 48px;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sidebar .card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px}
+.sidebar .card h3{font-size:1rem;font-weight:600;margin-bottom:12px;color:var(--text-primary)}
+
+.legend-list{display:flex;flex-wrap:wrap;gap:8px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--text-secondary)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat-item{text-align:center;padding:8px;background:rgba(15,23,42,.5);border-radius:8px}
+.stat-item .stat-val{font-size:1.3rem;font-weight:700;color:var(--text-primary)}
+.stat-item .stat-lbl{font-size:.75rem;color:var(--text-muted)}
+
+.node-detail{min-height:80px}
+.node-detail .empty{color:var(--text-muted);font-size:.85rem}
+
+.footer{position:relative;z-index:1;text-align:center;padding:32px 20px;border-top:1px solid var(--border-color);margin-top:32px}
+.footer p{color:var(--text-muted);font-size:.85rem}
+.footer a{color:var(--accent-blue);text-decoration:none}
+
+@media(max-width:768px){
+  .header h1{font-size:1.6rem}
+  .graph-wrapper{height:450px}
+  .sidebar{grid-template-columns:1fr}
+  .controls{gap:8px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>增强版知识图谱</h1>
+  <p class="subtitle">ENHANCED KNOWLEDGE GRAPH</p>
+</header>
+
+<div class="controls">
+  <label>分类过滤：
+    <select id="categoryFilter">
+      <option value="all">全部分类</option>
+    </select>
+  </label>
+  <label>证据等级：
+    <select id="evidenceFilter">
+      <option value="all">全部等级</option>
+      <option value="L0">L0 官方验证</option>
+      <option value="L1">L1 实际验证</option>
+      <option value="L2">L2 交叉验证</option>
+      <option value="L3">L3 理论推导</option>
+      <option value="L4">L4 待验证</option>
+    </select>
+  </label>
+  <button id="resetBtn">重置视图</button>
+  <button id="highlightBtn">高亮依赖链</button>
+</div>
+
+<div class="graph-container">
+  <div class="graph-card">
+    <div class="graph-wrapper" id="graphWrapper">
+      <div class="graph-tooltip" id="tooltip"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="card">
+    <h3>图例</h3>
+    <div class="legend-list" id="legendList"></div>
+  </div>
+  <div class="card">
+    <h3>统计</h3>
+    <div class="stats-grid" id="statsGrid"></div>
+  </div>
+  <div class="card" style="grid-column:1/-1">
+    <h3>节点详情</h3>
+    <div class="node-detail" id="nodeDetail">
+      <p class="empty">点击节点查看详细信息</p>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>AI Agent Resources — Enhanced Knowledge Graph</p>
+  <p style="margin-top:4px">最后更新: 2026-05-08 · 数据来源: graph-data.json</p>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  var wrapper=document.getElementById('graphWrapper');
+  var tooltip=document.getElementById('tooltip');
+
+  var categoryColors={
+    "concepts":"#3b82f6","platforms":"#10b981","prompts":"#8b5cf6",
+    "skills":"#f59e0b","tools":"#06b6d4","workflows":"#ec4899",
+    "getting-started":"#14b8a6","patterns":"#f97316","playbooks":"#a78bfa",
+    "case-studies":"#fb923c","verification":"#ef4444","benchmark":"#64748b",
+    "changelog":"#94a3b8","template":"#475569"
+  };
+  var edgeColors={depends_on:"#3b82f6",related_to:"#8b5cf6",follows:"#10b981",evolves_to:"#f59e0b"};
+  var edgeLabels={depends_on:"依赖",related_to:"关联",follows:"跟随",evolves_to:"演进"};
+
+  var allNodes=[
+    {id:"LLM",name:"LLM 大语言模型",category:"concepts",evidence_level:"L1",rating:"A"},
+    {id:"Agent",name:"Agent 智能体",category:"concepts",evidence_level:"L2",rating:"B"},
+    {id:"RAG",name:"RAG 检索增强生成",category:"concepts",evidence_level:"L2",rating:"B"},
+    {id:"MCP",name:"MCP 协议",category:"concepts",evidence_level:"L2",rating:"B"},
+    {id:"FC",name:"Function Calling",category:"concepts",evidence_level:"L1",rating:"A"},
+    {id:"Embedding",name:"Embedding",category:"concepts",evidence_level:"L1",rating:"A"},
+    {id:"VectorDB",name:"向量数据库",category:"tools",evidence_level:"L2",rating:"B"},
+    {id:"Finetune",name:"Fine-tuning",category:"concepts",evidence_level:"L3",rating:"C"},
+    {id:"Multimodal",name:"多模态 AI",category:"concepts",evidence_level:"L2",rating:"B"},
+    {id:"Safety",name:"AI 安全",category:"concepts",evidence_level:"L3",rating:"C"},
+    {id:"Prompt",name:"提示词工程",category:"prompts",evidence_level:"L1",rating:"A"},
+    {id:"MAS",name:"多 Agent 系统",category:"concepts",evidence_level:"L3",rating:"C"},
+    {id:"OpenAI",name:"OpenAI API",category:"platforms",evidence_level:"L1",rating:"A"},
+    {id:"Claude",name:"Anthropic Claude",category:"platforms",evidence_level:"L1",rating:"A"},
+    {id:"Gemini",name:"Google Gemini",category:"platforms",evidence_level:"L2",rating:"B"},
+    {id:"DeepSeek",name:"DeepSeek",category:"platforms",evidence_level:"L2",rating:"B"},
+    {id:"WebSearch",name:"Web 搜索",category:"skills",evidence_level:"L2",rating:"B"},
+    {id:"CodeReview",name:"代码审查",category:"skills",evidence_level:"L2",rating:"B"},
+    {id:"ResearchAgent",name:"研究代理",category:"workflows",evidence_level:"L2",rating:"B"},
+    {id:"RAGWorkflow",name:"RAG 构建流程",category:"workflows",evidence_level:"L2",rating:"B"}
+  ];
+
+  var allLinks=[
+    {source:"Agent",target:"LLM",type:"depends_on"},
+    {source:"RAG",target:"LLM",type:"depends_on"},
+    {source:"RAG",target:"Embedding",type:"depends_on"},
+    {source:"RAG",target:"VectorDB",type:"depends_on"},
+    {source:"Agent",target:"FC",type:"depends_on"},
+    {source:"Agent",target:"MCP",type:"depends_on"},
+    {source:"Agent",target:"MAS",type:"related_to"},
+    {source:"LLM",target:"Finetune",type:"related_to"},
+    {source:"LLM",target:"Multimodal",type:"related_to"},
+    {source:"Agent",target:"Safety",type:"related_to"},
+    {source:"LLM",target:"Prompt",type:"related_to"},
+    {source:"FC",target:"MCP",type:"evolves_to"},
+    {source:"OpenAI",target:"FC",type:"depends_on"},
+    {source:"Claude",target:"FC",type:"depends_on"},
+    {source:"Gemini",target:"FC",type:"depends_on"},
+    {source:"DeepSeek",target:"FC",type:"depends_on"},
+    {source:"WebSearch",target:"ResearchAgent",type:"depends_on"},
+    {source:"ResearchAgent",target:"LLM",type:"depends_on"},
+    {source:"CodeReview",target:"LLM",type:"depends_on"},
+    {source:"RAGWorkflow",target:"RAG",type:"follows"},
+    {source:"RAGWorkflow",target:"VectorDB",type:"depends_on"}
+  ];
+
+  var categories=Object.keys(categoryColors);
+  var filterSelect=document.getElementById('categoryFilter');
+  categories.forEach(function(c){
+    var opt=document.createElement('option');opt.value=c;opt.textContent=c;filterSelect.appendChild(opt);
+  });
+
+  // Legend
+  var legendEl=document.getElementById('legendList');
+  categories.forEach(function(c){
+    var item=document.createElement('span');item.className='legend-item';
+    item.innerHTML='<span class="legend-dot" style="background:'+categoryColors[c]+'"></span>'+c;
+    legendEl.appendChild(item);
+  });
+
+  // Stats
+  var statsEl=document.getElementById('statsGrid');
+  [{v:allNodes.length,l:'节点'},{v:allLinks.length,l:'边'},{v:categories.length,l:'分类'}].forEach(function(s){
+    var d=document.createElement('div');d.className='stat-item';
+    d.innerHTML='<div class="stat-val">'+s.v+'</div><div class="stat-lbl">'+s.l+'</div>';
+    statsEl.appendChild(d);
+  });
+
+  var simulation,svg,nodeGroup,linkGroup;
+
+  function renderGraph(nodes,links){
+    var rect=wrapper.getBoundingClientRect();
+    var width=rect.width||1000,height=rect.height||700;
+
+    wrapper.querySelectorAll('svg').forEach(function(s){s.remove()});
+
+    svg=d3.select('#graphWrapper').append('svg').attr('width',width).attr('height',height).style('cursor','grab');
+    var defs=svg.append('defs');
+    Object.keys(edgeColors).forEach(function(t){
+      defs.append('marker').attr('id','arrow-'+t).attr('viewBox','0 -5 10 10').attr('refX',30).attr('refY',0).attr('markerWidth',8).attr('markerHeight',8).attr('orient','auto').append('path').attr('d','M0,-5L10,0L0,5').attr('fill',edgeColors[t]);
+    });
+    defs.append('pattern').attr('id','grid').attr('width',40).attr('height',40).attr('patternUnits','userSpaceOnUse').append('path').attr('d','M 40 0 L 0 0 0 40').attr('fill','none').attr('stroke','rgba(59,130,246,.05)').attr('stroke-width',.5);
+    svg.append('rect').attr('width',width).attr('height',height).attr('fill','url(#grid)');
+
+    var nodeMap={};nodes.forEach(function(n){nodeMap[n.id]=n});
+    var graphLinks=links.map(function(l){return{source:l.source,target:l.target,type:l.type}});
+
+    linkGroup=svg.append('g');
+    nodeGroup=svg.append('g');
+
+    var linkEls=linkGroup.selectAll('g').data(graphLinks).enter().append('g');
+    var linkLines=linkEls.append('line').attr('stroke-width',2).attr('stroke',function(d){return edgeColors[d.type]||'#3b82f6'}).attr('stroke-opacity',.5).attr('marker-end',function(d){return'url(#arrow-'+d.type+')'});
+    var linkLabels=linkEls.append('text').attr('font-size','10px').attr('fill','#64748b').attr('text-anchor','middle').attr('dy','-5').attr('font-weight','500').text(function(d){return edgeLabels[d.type]||d.type});
+
+    simulation=d3.forceSimulation(nodes).force('link',d3.forceLink(graphLinks).id(function(d){return d.id}).distance(140)).force('charge',d3.forceManyBody().strength(-500)).force('center',d3.forceCenter(width/2,height/2)).force('collision',d3.forceCollide(50));
+
+    var nodeEls=nodeGroup.selectAll('g').data(nodes).enter().append('g').call(d3.drag().on('start',function(e,d){if(!e.active)simulation.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y}).on('drag',function(e,d){d.fx=e.x;d.fy=e.y}).on('end',function(e,d){if(!e.active)simulation.alphaTarget(0);d.fx=null;d.fy=null}))
+    .on('mouseenter',function(e,d){
+      tooltip.style.opacity=1;
+      tooltip.innerHTML='<div class="tt-name">'+d.name+'</div><div class="tt-meta">分类: '+d.category+' · 证据: '+(d.evidence_level||'-')+' · 评级: '+(d.rating||'-')+'</div>';
+    })
+    .on('mousemove',function(e){
+      var r=wrapper.getBoundingClientRect();
+      tooltip.style.left=Math.min(e.clientX-r.left+12,parseInt(svg.attr('width'))-220)+'px';
+      tooltip.style.top=Math.max(e.clientY-r.top-50,0)+'px';
+    })
+    .on('mouseleave',function(){tooltip.style.opacity=0})
+    .on('click',function(e,d){
+      var detail=document.getElementById('nodeDetail');
+      detail.innerHTML='<h4 style="margin-bottom:8px;color:'+(categoryColors[d.category]||'#3b82f6')+'">'+d.name+'</h4>'+
+        '<p style="font-size:.85rem;color:var(--text-secondary)">分类: '+d.category+'</p>'+
+        '<p style="font-size:.85rem;color:var(--text-secondary)">证据等级: '+(d.evidence_level||'未标注')+'</p>'+
+        '<p style="font-size:.85rem;color:var(--text-secondary)">评级: '+(d.rating||'未评级')+'</p>'+
+        '<p style="font-size:.85rem;color:var(--text-muted);margin-top:8px">依赖: '+links.filter(function(l){return l.target===d.id}).map(function(l){return l.source}).join(', ')||'无'+'</p>'+
+        '<p style="font-size:.85rem;color:var(--text-muted)">被依赖: '+links.filter(function(l){return l.source===d.id}).map(function(l){return l.target}).join(', ')||'无'+'</p>';
+    });
+
+    nodeEls.append('circle').attr('r',18).attr('fill',function(d){return categoryColors[d.category]||'#3b82f6'}).attr('stroke','rgba(255,255,255,.2)').attr('stroke-width',2).style('filter','drop-shadow(0 0 6px rgba(59,130,246,.3))');
+    nodeEls.insert('circle','circle').attr('r',24).attr('fill','none').attr('stroke',function(d){return categoryColors[d.category]||'#3b82f6'}).attr('stroke-width',1).attr('stroke-opacity',.2);
+    nodeEls.append('text').attr('dy',30).attr('text-anchor','middle').attr('fill','#e2e8f0').attr('font-size','11px').attr('font-weight','600').text(function(d){return d.name.length>10?d.name.slice(0,10)+'…':d.name});
+
+    simulation.on('tick',function(){
+      linkLines.attr('x1',function(d){return d.source.x}).attr('y1',function(d){return d.source.y}).attr('x2',function(d){return d.target.x}).attr('y2',function(d){return d.target.y});
+      linkLabels.attr('x',function(d){return(d.source.x+d.target.x)/2}).attr('y',function(d){return(d.source.y+d.target.y)/2});
+      nodeEls.attr('transform',function(d){return'translate('+d.x+','+d.y+')'});
+    });
+
+    var zoom=d3.zoom().scaleExtent([.3,3]).on('zoom',function(e){nodeGroup.attr('transform',e.transform);linkGroup.attr('transform',e.transform)});
+    svg.call(zoom);
+  }
+
+  function getFilteredData(){
+    var catVal=filterSelect.value;
+    var evVal=document.getElementById('evidenceFilter').value;
+    var filtered=allNodes;
+    if(catVal!=='all')filtered=filtered.filter(function(n){return n.category===catVal});
+    if(evVal!=='all')filtered=filtered.filter(function(n){return n.evidence_level===evVal});
+    var ids=new Set(filtered.map(function(n){return n.id}));
+    var links=allLinks.filter(function(l){return ids.has(l.source)&&ids.has(l.target)});
+    return{nodes:filtered.slice(),links:links};
+  }
+
+  function refresh(){
+    var data=getFilteredData();
+    renderGraph(data.nodes,data.links);
+  }
+
+  filterSelect.addEventListener('change',refresh);
+  document.getElementById('evidenceFilter').addEventListener('change',refresh);
+
+  document.getElementById('resetBtn').addEventListener('click',function(){
+    filterSelect.value='all';
+    document.getElementById('evidenceFilter').value='all';
+    document.getElementById('highlightBtn').classList.remove('active');
+    refresh();
+  });
+
+  document.getElementById('highlightBtn').addEventListener('click',function(){
+    this.classList.toggle('active');
+    // Simple highlight: dim non-depends_on edges
+    var isHighlight=this.classList.contains('active');
+    linkGroup.selectAll('line').attr('stroke-opacity',function(d){
+      if(isHighlight)return d.type==='depends_on'?.7:.1;
+      return.5;
+    });
+  });
+
+  renderGraph(allNodes.slice(),allLinks.slice());
+
+  window.addEventListener('resize',function(){
+    var data=getFilteredData();
+    renderGraph(data.nodes,data.links);
+  });
+})();
+</script>
+</body>
+</html>

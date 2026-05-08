@@ -1,0 +1,141 @@
+name: research-agent
+version: "1.0.0"
+description: >
+  A multi-step research agent workflow that plans queries, searches the web,
+  reads content, summarizes findings, and verifies citations.
+
+nodes:
+  query_planner:
+    type: llm
+    description: >
+      Analyze the research topic and decompose it into focused search queries.
+    inputs:
+      topic: "{{inputs.topic}}"
+      focus_areas: "{{inputs.focus_areas | default([])}}"
+    prompt: |
+      You are a research query planner. Given a research topic, generate
+      3-5 specific search queries that will cover different aspects of the topic.
+
+      Topic: {{topic}}
+      {% if focus_areas %}Focus areas: {{focus_areas | join(", ")}}{% endif %}
+
+      Output a JSON array of query strings.
+    output:
+      queries: "list[str]"
+    next: web_searcher
+
+  web_searcher:
+    type: skill
+    description: >
+      Execute search queries and collect URLs for each result.
+    inputs:
+      queries: "{{nodes.query_planner.outputs.queries}}"
+      max_results_per_query: 3
+    skill: web-search
+    params:
+      max_results: 3
+    output:
+      search_results: "list[dict]"
+    next: content_reader
+
+  content_reader:
+    type: skill
+    description: >
+      Read and extract text content from the top search results.
+    inputs:
+      urls: "{{nodes.web_searcher.outputs.search_results | map(attribute='url') | list}}"
+    skill: file-reader
+    output:
+      documents: "list[dict]"
+    next: summarizer
+
+  summarizer:
+    type: llm
+    description: >
+      Synthesize the collected documents into a structured research summary.
+    inputs:
+      topic: "{{inputs.topic}}"
+      documents: "{{nodes.content_reader.outputs.documents}}"
+      focus_areas: "{{inputs.focus_areas | default([])}}"
+    prompt: |
+      You are a research synthesis assistant. Produce a structured summary
+      of the following documents on the topic: {{topic}}.
+
+      {% if focus_areas %}Focus areas: {{focus_areas | join(", ")}}{% endif %}
+
+      Documents:
+      {% for doc in documents %}
+      ---
+      [{{doc.doc_id}}] {{doc.title}}
+      {{doc.content}}
+      {% endfor %}
+
+      Output a JSON object with:
+      - summary: string
+      - key_findings: list of {finding, confidence, sources}
+      - disagreements: list of {topic, positions}
+      - limitations: list of strings
+    output:
+      summary: "dict"
+    next: citation_checker
+
+  citation_checker:
+    type: llm
+    description: >
+      Verify that all claims in the summary are properly cited and
+      citations point to actual source content.
+    inputs:
+      summary: "{{nodes.summarizer.outputs.summary}}"
+      documents: "{{nodes.content_reader.outputs.documents}}"
+    prompt: |
+      You are a citation verification assistant. Review the research summary
+      and verify that:
+
+      1. Every factual claim has a citation.
+      2. Every citation references content that actually exists in the source documents.
+      3. No claims are made without supporting evidence.
+
+      Summary:
+      {{summary.summary}}
+
+      Key findings:
+      {% for f in summary.key_findings %}
+      - {{f.finding}} (sources: {{f.sources | join(", ")}})
+      {% endfor %}
+
+      Source documents available:
+      {% for doc in documents %}
+      - [{{doc.doc_id}}] {{doc.title | default("Untitled")}}
+      {% endfor %}
+
+      Output a JSON object with:
+      - verified: boolean
+      - issues: list of strings (empty if all citations are valid)
+      - corrections: list of {original, corrected} (if any citations need fixing)
+    output:
+      verification: "dict"
+
+edges:
+  - from: query_planner
+    to: web_searcher
+  - from: web_searcher
+    to: content_reader
+  - from: content_reader
+    to: summarizer
+  - from: summarizer
+    to: citation_checker
+
+inputs:
+  topic:
+    type: string
+    required: true
+    description: The research topic to investigate.
+  focus_areas:
+    type: array
+    required: false
+    default: []
+    description: Specific sub-topics to prioritize.
+
+outputs:
+  summary: "{{nodes.summarizer.outputs.summary}}"
+  verification: "{{nodes.citation_checker.outputs.verification}}"

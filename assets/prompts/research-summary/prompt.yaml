@@ -1,0 +1,113 @@
+name: research-summary
+version: "1.0.0"
+description: >
+  Synthesize multiple research sources into a structured summary with
+  key findings, methodology notes, and confidence ratings.
+author: ai-agent-resources
+tags: [research, summarization, synthesis]
+
+parameters:
+  topic:
+    type: string
+    required: true
+    description: The research topic or question to summarize.
+  sources:
+    type: array
+    required: true
+    description: List of source documents or excerpts to synthesize.
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title or identifier of the source.
+        content:
+          type: string
+          description: The text content from the source.
+        url:
+          type: string
+          description: Optional URL for the source.
+  max_length:
+    type: integer
+    required: false
+    default: 1000
+    description: Maximum word count for the summary output.
+  focus_areas:
+    type: array
+    required: false
+    default: []
+    description: Specific sub-topics to prioritize in the summary.
+    items:
+      type: string
+
+system_prompt: |
+  You are a research synthesis assistant. Your job is to read multiple
+  sources on a given topic and produce a clear, well-structured summary.
+
+  Follow these rules:
+  1. Identify the 3-5 most important findings across all sources.
+  2. Note areas of consensus and disagreement between sources.
+  3. Rate your confidence in each finding (high / medium / low).
+  4. Flag any methodological concerns or limitations.
+  5. Never fabricate information not present in the sources.
+  6. Always cite which source(s) support each finding.
+
+user_prompt_template: |
+  Please summarize the following research on "{{topic}}".
+
+  {% if focus_areas %}
+  Pay special attention to these areas:
+  {% for area in focus_areas %}
+  - {{area}}
+  {% endfor %}
+  {% endif %}
+
+  Keep the summary under {{max_length}} words.
+
+  Sources:
+  {% for source in sources %}
+  ---
+  **Source {{loop.index}}: {{source.title}}**
+  {% if source.url %}URL: {{source.url}}{% endif %}
+
+  {{source.content}}
+  {% endfor %}
+
+output_format:
+  type: object
+  properties:
+    summary:
+      type: string
+      description: The synthesized research summary.
+    key_findings:
+      type: array
+      description: List of key findings with confidence ratings.
+      items:
+        type: object
+        properties:
+          finding:
+            type: string
+          confidence:
+            type: string
+            enum: [high, medium, low]
+          sources:
+            type: array
+            items:
+              type: string
+    disagreements:
+      type: array
+      description: Areas where sources disagree.
+      items:
+        type: object
+        properties:
+          topic:
+            type: string
+          positions:
+            type: array
+            items:
+              type: string
+    limitations:
+      type: array
+      description: Methodological concerns or data limitations.
+      items:
+        type: string

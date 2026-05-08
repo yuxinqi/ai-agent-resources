@@ -1,5 +1,7 @@
 # AI Agent Resources - 依赖清单
-# 目前所有脚本均使用 Python 标准库，无需额外安装。
-# 如果未来引入 PyYAML 等依赖，请在此添加。
 
-# pyyaml>=6.0    # 用于 YAML frontmatter 解析（启用后替代手动解析）
+# YAML 解析（validate_metadata.py 可选依赖，无此库时使用内置解析）
+pyyaml>=6.0
+
+# 外部链接检查（check_links.py --external 需此依赖）
+requests>=2.28.0

@@ -1,0 +1,114 @@
+name: code-review
+version: "1.0.0"
+description: >
+  Perform a structured code review that identifies bugs, security issues,
+  performance problems, and style violations with severity ratings and
+  actionable suggestions.
+author: ai-agent-resources
+tags: [code-review, quality, security]
+
+parameters:
+  code:
+    type: string
+    required: true
+    description: The source code to review.
+  language:
+    type: string
+    required: true
+    description: Programming language of the code (e.g., python, javascript, go).
+    enum: [python, javascript, typescript, go, java, rust, ruby, cpp, c, other]
+  file_path:
+    type: string
+    required: false
+    description: Optional file path for context in review comments.
+  review_focus:
+    type: array
+    required: false
+    default: ["bugs", "security", "performance", "style"]
+    description: Areas to focus the review on.
+    items:
+      type: string
+      enum: [bugs, security, performance, style, maintainability, accessibility]
+  severity_threshold:
+    type: string
+    required: false
+    default: info
+    description: Minimum severity level to report.
+    enum: [critical, high, medium, low, info]
+
+system_prompt: |
+  You are an expert code reviewer. Analyze the provided code and produce
+  a structured review with actionable findings.
+
+  Review guidelines:
+  1. Identify actual bugs, not hypothetical ones.
+  2. Flag security vulnerabilities using OWASP classifications where applicable.
+  3. Note performance issues with concrete impact estimates.
+  4. Suggest specific fixes, not vague improvements.
+  5. Rate each finding by severity: critical, high, medium, low, info.
+  6. Do not flag style preferences as bugs — only flag style issues if
+     they affect readability, maintainability, or are likely errors.
+  7. Acknowledge what the code does well, not just what needs fixing.
+
+user_prompt_template: |
+  Review the following {{language}} code.
+
+  {% if file_path %}File: `{{file_path}}`{% endif %}
+
+  Review focus: {{review_focus | join(", ")}}
+  Minimum severity: {{severity_threshold}}
+
+  ```{{language}}
+  {{code}}
+  ```
+
+  Provide a structured review with specific, actionable findings.
+
+output_format:
+  type: object
+  properties:
+    overall_assessment:
+      type: string
+      description: Brief overall assessment of the code quality.
+    findings:
+      type: array
+      description: List of review findings.
+      items:
+        type: object
+        properties:
+          severity:
+            type: string
+            enum: [critical, high, medium, low, info]
+          category:
+            type: string
+            enum: [bug, security, performance, style, maintainability, accessibility]
+          location:
+            type: string
+            description: Line number or code location.
+          description:
+            type: string
+            description: What the issue is.
+          suggestion:
+            type: string
+            description: Specific fix or improvement.
+          rule:
+            type: string
+            description: Optional rule or standard being violated (e.g., CWE-79, PEP8).
+    positives:
+      type: array
+      description: Things the code does well.
+      items:
+        type: string
+    summary_stats:
+      type: object
+      properties:
+        critical:
+          type: integer
+        high:
+          type: integer
+        medium:
+          type: integer
+        low:
+          type: integer
+        info:
+          type: integer

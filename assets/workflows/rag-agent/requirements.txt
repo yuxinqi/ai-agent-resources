@@ -1,0 +1,21 @@
+# RAG Agent dependencies
+# No external dependencies required — demo uses only Python stdlib.
+# For production use, consider:
+
+# OpenAI Python client
+openai>=1.0.0
+
+# Vector database
+chromadb>=0.4.0
+
+# Embedding model
+sentence-transformers>=2.2.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Jinja2 for template rendering
+Jinja2>=3.1.0
+
+# PyYAML for workflow config parsing
+PyYAML>=6.0

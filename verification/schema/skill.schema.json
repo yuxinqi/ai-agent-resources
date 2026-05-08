@@ -1,0 +1,336 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-agent-resources/verification/schema/skill.schema.json",
+  "title": "Skill Asset",
+  "description": "Schema for skill assets in the AI agent resources library",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "type",
+    "version",
+    "language",
+    "status",
+    "description",
+    "input_spec",
+    "output_spec"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the skill asset",
+      "pattern": "^S-[a-zA-Z0-9_-]+$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title of the skill"
+    },
+    "type": {
+      "type": "string",
+      "description": "Asset type, always 'skill'",
+      "const": "skill"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the skill asset",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "language": {
+      "type": "string",
+      "description": "Programming language of the skill implementation"
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the skill asset",
+      "enum": ["draft", "experimental", "verified", "deprecated", "retired"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what the skill does"
+    },
+    "input_spec": {
+      "type": "object",
+      "description": "Specification of skill inputs",
+      "required": ["type", "properties"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["object"]
+        },
+        "required": {
+          "type": "array",
+          "description": "Required input fields",
+          "items": {
+            "type": "string"
+          }
+        },
+        "optional": {
+          "type": "array",
+          "description": "Optional input fields",
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "description": "Detailed property definitions for inputs",
+          "additionalProperties": true
+        }
+      }
+    },
+    "output_spec": {
+      "type": "object",
+      "description": "Specification of skill outputs",
+      "required": ["type", "properties"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["object"]
+        },
+        "properties": {
+          "type": "object",
+          "description": "Detailed property definitions for outputs",
+          "additionalProperties": true
+        }
+      }
+    },
+    "error_handling": {
+      "type": "object",
+      "description": "Error handling specification",
+      "properties": {
+        "retry_policy": {
+          "type": "object",
+          "description": "Retry policy for recoverable errors",
+          "properties": {
+            "max_retries": {
+              "type": "integer",
+              "description": "Maximum number of retries",
+              "minimum": 0
+            },
+            "backoff_strategy": {
+              "type": "string",
+              "description": "Backoff strategy for retries",
+              "enum": ["fixed", "linear", "exponential"]
+            },
+            "initial_delay_ms": {
+              "type": "integer",
+              "description": "Initial delay in milliseconds before first retry"
+            }
+          }
+        },
+        "error_types": {
+          "type": "array",
+          "description": "Known error types and their handling",
+          "items": {
+            "type": "object",
+            "required": ["name", "description", "handling"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Error type name"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the error type"
+              },
+              "handling": {
+                "type": "string",
+                "description": "How this error is handled",
+                "enum": ["retry", "fallback", "raise", "log_and_continue", "graceful_degradation"]
+              },
+              "fallback_value": {
+                "description": "Fallback value if handling is 'fallback'",
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Dependencies required by the skill",
+      "properties": {
+        "packages": {
+          "type": "array",
+          "description": "Required packages/libraries",
+          "items": {
+            "type": "object",
+            "required": ["name", "version"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Package name"
+              },
+              "version": {
+                "type": "string",
+                "description": "Required version or version range"
+              },
+              "purpose": {
+                "type": "string",
+                "description": "Purpose of this dependency"
+              }
+            }
+          }
+        },
+        "services": {
+          "type": "array",
+          "description": "Required external services",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Service name"
+              },
+              "endpoint": {
+                "type": "string",
+                "description": "Service endpoint URL"
+              },
+              "auth_required": {
+                "type": "boolean",
+                "description": "Whether authentication is required",
+                "default": false
+              }
+            }
+          }
+        },
+        "models": {
+          "type": "array",
+          "description": "Required AI models",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Model name"
+              },
+              "min_version": {
+                "type": "string",
+                "description": "Minimum required model version"
+              }
+            }
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "description": "Evaluation criteria for the skill",
+      "properties": {
+        "test_cases": {
+          "type": "array",
+          "description": "Test cases for skill evaluation",
+          "items": {
+            "type": "object",
+            "required": ["name", "input", "expected_output"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the test case"
+              },
+              "input": {
+                "description": "Input for the test case",
+                "type": "object",
+                "additionalProperties": true
+              },
+              "expected_output": {
+                "description": "Expected output for the test case",
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Evaluation metrics",
+          "properties": {
+            "accuracy": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "number"
+                },
+                "threshold": {
+                  "type": "number"
+                }
+              }
+            },
+            "execution_time_ms": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                }
+              }
+            },
+            "custom": {
+              "type": "object",
+              "description": "Custom evaluation metrics",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "description": "Verification status and history",
+      "properties": {
+        "evidence_level": {
+          "type": "string",
+          "enum": ["L0", "L1", "L2", "L3", "L4"],
+          "default": "L0"
+        },
+        "practical_rating": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D"],
+          "default": "D"
+        },
+        "last_verified": {
+          "type": "string",
+          "format": "date"
+        },
+        "valid_until": {
+          "type": "string",
+          "format": "date"
+        },
+        "verified_by": {
+          "type": "string"
+        },
+        "verification_reports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "relations": {
+      "type": "object",
+      "description": "Relations to other assets",
+      "properties": {
+        "related": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

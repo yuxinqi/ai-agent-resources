@@ -1,0 +1,300 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-agent-resources/verification/schema/workflow.schema.json",
+  "title": "Workflow Asset",
+  "description": "Schema for workflow assets in the AI agent resources library",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "type",
+    "version",
+    "language",
+    "status",
+    "description",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the workflow asset",
+      "pattern": "^W-[a-zA-Z0-9_-]+$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title of the workflow"
+    },
+    "type": {
+      "type": "string",
+      "description": "Asset type, always 'workflow'",
+      "const": "workflow"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the workflow asset",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "language": {
+      "type": "string",
+      "description": "Primary language of the workflow definition"
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the workflow asset",
+      "enum": ["draft", "experimental", "verified", "deprecated", "retired"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what the workflow accomplishes"
+    },
+    "nodes": {
+      "type": "array",
+      "description": "Nodes (steps) in the workflow",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the node within the workflow"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the node",
+            "enum": ["input", "output", "process", "decision", "tool", "prompt", "skill", "subworkflow", "human_approval", "parallel", "merge"]
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name of the node"
+          },
+          "tool": {
+            "type": "string",
+            "description": "Tool or skill to invoke at this node (for tool/skill/prompt types)"
+          },
+          "input": {
+            "type": "object",
+            "description": "Input configuration for the node",
+            "additionalProperties": true
+          },
+          "output": {
+            "type": "object",
+            "description": "Output configuration for the node",
+            "additionalProperties": true
+          },
+          "config": {
+            "type": "object",
+            "description": "Additional configuration for the node",
+            "additionalProperties": true
+          },
+          "retry_policy": {
+            "type": "object",
+            "description": "Retry policy for this node",
+            "properties": {
+              "max_retries": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "backoff_strategy": {
+                "type": "string",
+                "enum": ["fixed", "linear", "exponential"]
+              }
+            }
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "description": "Timeout for this node in milliseconds"
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "description": "Edges (connections) between nodes in the workflow",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Source node ID"
+          },
+          "to": {
+            "type": "string",
+            "description": "Target node ID"
+          },
+          "condition": {
+            "type": "string",
+            "description": "Condition for this edge (for decision nodes)"
+          },
+          "label": {
+            "type": "string",
+            "description": "Label for the edge"
+          },
+          "transform": {
+            "type": "object",
+            "description": "Data transformation to apply when traversing this edge",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "description": "Evaluation criteria for the workflow",
+      "properties": {
+        "test_cases": {
+          "type": "array",
+          "description": "Test cases for workflow evaluation",
+          "items": {
+            "type": "object",
+            "required": ["name", "input", "expected_output"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "expected_output": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Evaluation metrics for the workflow",
+          "properties": {
+            "task_success_rate": {
+              "type": "object",
+              "description": "Rate of successful task completion",
+              "properties": {
+                "target": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "threshold": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            },
+            "step_completion_rate": {
+              "type": "object",
+              "description": "Rate of individual step completion",
+              "properties": {
+                "target": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "threshold": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            },
+            "failure_recovery": {
+              "type": "object",
+              "description": "Rate of successful failure recovery",
+              "properties": {
+                "target": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "threshold": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            },
+            "avg_duration": {
+              "type": "object",
+              "description": "Average workflow duration",
+              "properties": {
+                "target_ms": {
+                  "type": "number"
+                },
+                "max_ms": {
+                  "type": "number"
+                }
+              }
+            },
+            "human_interventions": {
+              "type": "object",
+              "description": "Number of human interventions required",
+              "properties": {
+                "target": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "description": "Verification status and history",
+      "properties": {
+        "evidence_level": {
+          "type": "string",
+          "enum": ["L0", "L1", "L2", "L3", "L4"],
+          "default": "L0"
+        },
+        "practical_rating": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D"],
+          "default": "D"
+        },
+        "last_verified": {
+          "type": "string",
+          "format": "date"
+        },
+        "valid_until": {
+          "type": "string",
+          "format": "date"
+        },
+        "verified_by": {
+          "type": "string"
+        },
+        "verification_reports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "relations": {
+      "type": "object",
+      "description": "Relations to other assets",
+      "properties": {
+        "related": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,199 @@
+name: rag-agent
+version: "1.0.0"
+description: >
+  A Retrieval-Augmented Generation workflow that processes a query through
+  retrieval, reranking, generation, and verification stages.
+
+nodes:
+  query_processor:
+    type: llm
+    description: >
+      Process and optimize the user query for retrieval. Handles multi-part
+      questions, ambiguous queries, and query expansion.
+    inputs:
+      query: "{{inputs.query}}"
+      conversation_history: "{{inputs.conversation_history | default([])}}"
+    prompt: |
+      You are a query processing assistant for a RAG system. Your job is to:
+
+      1. If the query is ambiguous, generate clarifying sub-queries.
+      2. If the query is multi-part, split it into focused sub-queries.
+      3. Expand the query with synonyms or related terms for better retrieval.
+      4. Preserve the original intent — do not change the meaning.
+
+      Original query: {{query}}
+
+      {% if conversation_history %}
+      Conversation context:
+      {% for msg in conversation_history %}
+      {{msg.role}}: {{msg.content}}
+      {% endfor %}
+      {% endif %}
+
+      Output a JSON object with:
+      - original_query: string
+      - processed_queries: list of string (1-3 optimized queries)
+      - query_type: "factual" | "analytical" | "procedural" | "comparative"
+    output:
+      processed_queries: "list[str]"
+      query_type: "str"
+    next: retriever
+
+  retriever:
+    type: skill
+    description: >
+      Retrieve relevant document chunks from the vector store based on
+      the processed queries.
+    inputs:
+      queries: "{{nodes.query_processor.outputs.processed_queries}}"
+      top_k: 10
+    skill: vector-search
+    params:
+      top_k: 10
+      similarity_threshold: 0.5
+    output:
+      raw_documents: "list[dict]"
+    next: reranker
+
+  reranker:
+    type: llm
+    description: >
+      Re-rank retrieved documents by relevance to the original query.
+      Removes redundant or irrelevant results.
+    inputs:
+      query: "{{inputs.query}}"
+      query_type: "{{nodes.query_processor.outputs.query_type}}"
+      documents: "{{nodes.retriever.outputs.raw_documents}}"
+    prompt: |
+      You are a document reranker for a RAG system. Given a query and a set
+      of retrieved documents, rank them by relevance and remove duplicates.
+
+      Query: {{query}}
+      Query type: {{query_type}}
+
+      Documents:
+      {% for doc in documents %}
+      ---
+      [{{doc.doc_id}}] (score: {{doc.score | default('N/A')}})
+      {{doc.content[:200]}}
+      {% endfor %}
+
+      Output a JSON object with:
+      - ranked_doc_ids: list of doc_id strings, most relevant first
+      - removed_doc_ids: list of doc_id strings that are redundant or irrelevant
+      - reasoning: brief explanation of ranking decisions
+    output:
+      ranked_doc_ids: "list[str]"
+      removed_doc_ids: "list[str]"
+      reasoning: "str"
+    next: generator
+
+  generator:
+    type: llm
+    description: >
+      Generate an answer using the top-ranked documents as context.
+      Includes source citations and confidence scoring.
+    inputs:
+      query: "{{inputs.query}}"
+      query_type: "{{nodes.query_processor.outputs.query_type}}"
+      ranked_doc_ids: "{{nodes.reranker.outputs.ranked_doc_ids}}"
+      all_documents: "{{nodes.retriever.outputs.raw_documents}}"
+      answer_style: "{{inputs.answer_style | default('balanced')}}"
+    prompt: |
+      You are a RAG answer generator. Answer the question using ONLY the
+      provided context documents. Cite sources using [doc_id] references.
+
+      Query: {{query}}
+      Query type: {{query_type}}
+      Answer style: {{answer_style}}
+
+      Context documents (ranked by relevance):
+      {% for doc in all_documents if doc.doc_id in ranked_doc_ids %}
+      ---
+      [{{doc.doc_id}}] {{doc.title | default("Untitled")}}
+      {{doc.content}}
+      {% endfor %}
+
+      Output a JSON object with:
+      - answer: string (with [doc_id] citations inline)
+      - confidence: "high" | "medium" | "low" | "insufficient"
+      - sources_used: list of doc_id strings
+      - gaps: list of missing information
+      - reasoning: brief explanation
+    output:
+      answer: "str"
+      confidence: "str"
+      sources_used: "list[str]"
+      gaps: "list[str]"
+    next: verifier
+
+  verifier:
+    type: llm
+    description: >
+      Verify that the generated answer is faithful to the source documents
+      and does not contain hallucinations.
+    inputs:
+      query: "{{inputs.query}}"
+      answer: "{{nodes.generator.outputs.answer}}"
+      sources_used: "{{nodes.generator.outputs.sources_used}}"
+      all_documents: "{{nodes.retriever.outputs.raw_documents}}"
+    prompt: |
+      You are a faithfulness verifier for a RAG system. Check that the
+      generated answer is fully supported by the source documents.
+
+      Query: {{query}}
+
+      Generated answer: {{answer}}
+
+      Source documents referenced:
+      {% for doc in all_documents if doc.doc_id in sources_used %}
+      [{{doc.doc_id}}]: {{doc.content[:300]}}
+      {% endfor %}
+
+      For each claim in the answer, verify:
+      1. Is it directly stated in a source document?
+      2. Is it a reasonable inference from the documents?
+      3. Is it fabricated (not supported by any document)?
+
+      Output a JSON object with:
+      - is_faithful: boolean
+      - hallucinated_claims: list of strings (claims not supported by sources)
+      - unsupported_inferences: list of strings (reasonable but not explicit)
+      - suggestions: list of strings (improvements for faithfulness)
+    output:
+      is_faithful: "bool"
+      hallucinated_claims: "list[str]"
+      unsupported_inferences: "list[str]"
+      suggestions: "list[str]"
+
+edges:
+  - from: query_processor
+    to: retriever
+  - from: retriever
+    to: reranker
+  - from: reranker
+    to: generator
+  - from: generator
+    to: verifier
+
+inputs:
+  query:
+    type: string
+    required: true
+    description: The user's question.
+  conversation_history:
+    type: array
+    required: false
+    default: []
+    description: Previous conversation messages for context.
+  answer_style:
+    type: string
+    required: false
+    default: balanced
+    description: Answer style — concise, balanced, or detailed.
+
+outputs:
+  answer: "{{nodes.generator.outputs.answer}}"
+  confidence: "{{nodes.generator.outputs.confidence}}"
+  sources_used: "{{nodes.generator.outputs.sources_used}}"
+  verification: "{{nodes.verifier.outputs}}"

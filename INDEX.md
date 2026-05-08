@@ -1,80 +1,184 @@
 # 📇 总索引
 
-> 本索引按知识领域分类，标注了每篇文档的验真状态。✅ = 已验真，⏳ = 待验真，⚠️ = 需更新。
+> AI Agent Evidence Hub — 按 Knowledge / Practice / Evidence 三层架构分类
+> ✅ = 已验真 · ⏳ = 待验真 · ⚠️ = 需更新 · 证据等级 L0-L4 · 推荐等级 A-D
 
-> 最后自动生成：2026-05-07 10:01
+> 最后更新：2026-05-08
 
 ---
 
-## 一、核心概念 (Concepts)
+## 一、新手入门 (Getting Started)
 
-| 文档 | 分类 | 验真状态 | 最后更新 |
+| 文档 | 难度 | 验真状态 | 证据等级 |
 |------|------|---------|---------|
-| [Agent 架构 — 智能体的核心设计模式](docs/concepts/agent-architecture.md) | 基础理论 | ⏳ | 2026-05-07 |
-| [Embedding 与向量数据库](docs/concepts/embedding-vector-db.md) | 基础理论 | ⏳ | 2026-05-07 |
-| [模型微调 — Fine-tuning](docs/concepts/fine-tuning.md) | 基础理论 | ⏳ | 2026-05-07 |
-| [Function Calling 机制](docs/concepts/function-calling.md) | 基础理论 | ⏳ | 2026-05-07 |
-| [LLM 基础 — 大语言模型工作原理](docs/concepts/llm-basics.md) | 基础理论 | ⏳ | 2026-05-07 |
-| [MCP 协议 — Model Context Protocol](docs/concepts/mcp-protocol.md) | 基础理论 | ⏳ | 2026-05-07 |
-| [RAG 检索增强生成](docs/concepts/rag-retrieval.md) | 基础理论 | ⏳ | 2026-05-07 |
+| [项目概览](docs/getting-started/00-overview.md) | 入门 | ⏳ | L0 |
+| [Agent 基础概念](docs/getting-started/01-agent-basics.md) | 入门 | ⏳ | L0 |
+| [构建你的第一个 Agent](docs/getting-started/02-build-your-first-agent.md) | 入门 | ⏳ | L0 |
+| [Agent 评估基础](docs/getting-started/03-agent-evaluation-basics.md) | 入门 | ⏳ | L0 |
 
-## 二、API 平台申请与使用 (Platforms)
+## 二、核心概念 (Concepts)
 
-| 文档 | 分类 | 验真状态 | 最后更新 |
+| 文档 | 证据等级 | 推荐等级 | 最后更新 |
+|------|---------|---------|---------|
+| [Agent 智能体](docs/concepts/agent.md) | L1 | B | 2026-05-08 |
+| [Tool Use 工具使用](docs/concepts/tool-use.md) | L1 | B | 2026-05-08 |
+| [Planning 规划](docs/concepts/planning.md) | L0 | C | 2026-05-08 |
+| [Memory 记忆](docs/concepts/memory.md) | L0 | C | 2026-05-08 |
+| [RAG 检索增强生成](docs/concepts/rag.md) | L1 | B | 2026-05-08 |
+| [Multi-Agent 多智能体](docs/concepts/multi-agent.md) | L0 | C | 2026-05-08 |
+| [Evaluation 评估](docs/concepts/evaluation.md) | L1 | B | 2026-05-08 |
+
+## 三、架构模式 (Patterns)
+
+| 文档 | 适合场景 | 证据等级 | 推荐等级 |
+|------|---------|---------|---------|
+| [Planner-Executor](docs/patterns/planner-executor.md) | 复杂任务拆解 | L1 | B |
+| [Router](docs/patterns/router.md) | 多工具分流 | L1 | B |
+| [Reflection](docs/patterns/reflection.md) | 自我检查 | L0 | C |
+| [Evaluator-Optimizer](docs/patterns/evaluator-optimizer.md) | 生成后优化 | L0 | C |
+| [Human-in-the-Loop](docs/patterns/human-in-the-loop.md) | 高风险任务 | L1 | B |
+| [Guardrails](docs/patterns/guardrails.md) | 安全控制 | L1 | B |
+
+## 四、实战手册 (Playbooks)
+
+| 文档 | 优先级 | 证据等级 | 推荐等级 |
+|------|--------|---------|---------|
+| [构建 Tool-Using Agent](docs/playbooks/build-tool-using-agent.md) | P0 | L1 | B |
+| [构建 RAG Agent](docs/playbooks/build-rag-agent.md) | P0 | L1 | B |
+| [构建 Research Agent](docs/playbooks/build-research-agent.md) | P1 | L0 | C |
+| [构建 Coding Agent](docs/playbooks/build-coding-agent.md) | P1 | L0 | C |
+| [生产就绪指南](docs/playbooks/production-readiness.md) | P0 | L1 | B |
+
+## 五、平台指南 (Platforms)
+
+| 文档 | 证据等级 | 推荐等级 | 最后更新 |
+|------|---------|---------|---------|
+| [模型能力矩阵](docs/platforms/model-capability-matrix.md) | L1 | B | 2026-05-08 |
+| [API 平台对比](docs/platforms/api-platform-comparison.md) | L1 | B | 2026-05-08 |
+| [成本与延迟参考](docs/platforms/cost-latency-reference.md) | L1 | B | 2026-05-08 |
+| [平台变更日志](docs/platforms/platform-change-log.md) | L2 | B | 2026-05-08 |
+| [OpenAI API 指南](docs/platforms/openai-api-guide.md) | L2 | A | 2026-05-07 |
+| [Anthropic Claude API 指南](docs/platforms/anthropic-claude-guide.md) | L2 | A | 2026-05-07 |
+| [DeepSeek API 指南](docs/platforms/deepseek-api-guide.md) | L1 | B | 2026-05-07 |
+| [Google Gemini API 指南](docs/platforms/google-gemini-guide.md) | L1 | B | 2026-05-07 |
+| [API 平台综合对比](docs/platforms/platform-comparison.md) | L1 | B | 2026-05-07 |
+
+## 六、工具选型 (Tools)
+
+| 文档 | 证据等级 | 推荐等级 | 最后更新 |
+|------|---------|---------|---------|
+| [Agent 框架对比选型](docs/tools/framework-comparison.md) | L1 | B | 2026-05-08 |
+| [评估工具](docs/tools/evaluation-tools.md) | L0 | C | 2026-05-08 |
+| [追踪与可观测性](docs/tools/tracing-and-observability.md) | L0 | C | 2026-05-08 |
+| [部署工具](docs/tools/deployment-tools.md) | L0 | C | 2026-05-08 |
+| [LangChain 入门](docs/tools/langchain-intro.md) | L0 | C | 2026-05-07 |
+
+## 七、案例分析 (Case Studies)
+
+| 文档 | 证据等级 | 推荐等级 |
+|------|---------|---------|
+| [客服 Agent](docs/case-studies/customer-support-agent.md) | L1 | B |
+| [研究 Agent](docs/case-studies/research-agent.md) | L1 | B |
+| [内部知识 Agent](docs/case-studies/internal-knowledge-agent.md) | L1 | B |
+| [PR Review Agent](docs/case-studies/pr-review-agent.md) | L1 | B |
+
+## 八、可复用资产 (Assets)
+
+### Prompt 资产
+
+| 资产 | 证据等级 | 推荐等级 |
+|------|---------|---------|
+| [Research Summary Prompt](assets/prompts/research-summary/README.md) | L2 | B |
+| [Code Review Prompt](assets/prompts/code-review/README.md) | L2 | B |
+| [RAG Answer Prompt](assets/prompts/rag-answer/README.md) | L1 | C |
+
+### Skill 资产
+
+| 资产 | 证据等级 | 推荐等级 |
+|------|---------|---------|
+| [Web Search Skill](assets/skills/web-search/README.md) | L2 | B |
+| [File Reader Skill](assets/skills/file-reader/README.md) | L2 | B |
+
+### Workflow 资产
+
+| 资产 | 证据等级 | 推荐等级 |
+|------|---------|---------|
+| [Research Agent Workflow](assets/workflows/research-agent/README.md) | L2 | B |
+| [RAG Agent Workflow](assets/workflows/rag-agent/README.md) | L1 | C |
+
+## 九、可运行示例 (Examples)
+
+| 示例 | 说明 |
+|------|------|
+| [Tool-Using Agent](examples/tool-using-agent/README.md) | 最小工具调用 Agent 示例 |
+| [RAG Agent](examples/rag-agent/README.md) | 最小 RAG Agent 示例 |
+
+## 十、验真中心 (Verification)
+
+### 验真报告
+
+| 报告 | 类型 | 证据等级 | 推荐等级 |
 |------|------|---------|---------|
-| [Anthropic Claude API 申请指南](docs/platforms/anthropic-claude-guide.md) | 平台 | ✅ | 2026-05-07 |
-| [DeepSeek API 使用指南](docs/platforms/deepseek-api-guide.md) | 平台 | ⏳ | 2026-05-07 |
-| [Google Gemini API 使用指南](docs/platforms/google-gemini-guide.md) | 平台 | ⏳ | 2026-05-07 |
-| [OpenAI API 申请与使用指南](docs/platforms/openai-api-guide.md) | 平台 | ✅ | 2026-05-07 |
-| [API 平台综合对比](docs/platforms/platform-comparison.md) | 平台 | ⏳ | 2026-05-07 |
+| [Research Summary Prompt 验真](verification/reports/prompts/research-summary-202605.md) | Prompt | L2 | B |
+| [Code Review Prompt 验真](verification/reports/prompts/code-review-202605.md) | Prompt | L2 | B |
+| [Web Search Skill 验真](verification/reports/skills/web-search-202605.md) | Skill | L2 | B |
+| [Research Agent Workflow 验真](verification/reports/workflows/research-agent-202605.md) | Workflow | L2 | B |
+| [OpenAI API 验真](verification/reports/platforms/openai-api-202605.md) | Platform | L2 | B |
 
-## 三、提示词资源 (Prompts)
+### 验真 Schemas
 
-| 文档 | 分类 | 验真状态 | 最后更新 |
-|------|------|---------|---------|
-| [Chain-of-Thought 提示技巧](docs/prompts/chain-of-thought.md) | 提示词 | ⏳ | 2026-05-07 |
-| [提示词工程基础](docs/prompts/prompt-engineering-basics.md) | 提示词 | ⏳ | 2026-05-07 |
-| [提示词模板库](docs/prompts/prompt-templates.md) | 提示词 | ⏳ | 2026-05-07 |
-| [System Prompt 最佳实践](docs/prompts/system-prompt-best-practices.md) | 提示词 | ⏳ | 2026-05-07 |
+| Schema | 说明 |
+|--------|------|
+| [verification.schema.json](verification/schema/verification.schema.json) | 验真报告 Schema |
+| [prompt.schema.json](verification/schema/prompt.schema.json) | Prompt 资产 Schema |
+| [skill.schema.json](verification/schema/skill.schema.json) | Skill 资产 Schema |
+| [workflow.schema.json](verification/schema/workflow.schema.json) | Workflow 资产 Schema |
 
-## 四、Skills 资源 (Skills)
+### 变更日志
 
-| 文档 | 分类 | 验真状态 | 最后更新 |
-|------|------|---------|---------|
-| [Code Review Skill](docs/skills/code-review-skill.md) | 技能 | ⏳ | 2026-05-07 |
-| [Data Extraction Skill](docs/skills/data-extraction-skill.md) | 技能 | ⏳ | 2026-05-07 |
-| [Skills 概念与最佳实践](docs/skills/skills-overview.md) | 技能 | ⏳ | 2026-05-07 |
-| [Summarization Skill](docs/skills/summarization-skill.md) | 技能 | ⏳ | 2026-05-07 |
-| [如何编写高质量的 Skills](docs/skills/writing-skills.md) | 技能 | ⏳ | 2026-05-07 |
+| 文档 | 说明 |
+|------|------|
+| [API 兼容性变更](verification/changelog/api-compatibility.md) | API 兼容性追踪 |
+| [模型能力变更](verification/changelog/model-capability-changes.md) | 模型能力变更追踪 |
+| [已废弃内容](verification/changelog/deprecated-items.md) | 废弃内容记录 |
 
-## 五、工具与框架 (Tools)
+## 十一、Benchmark
 
-| 文档 | 分类 | 验真状态 | 最后更新 |
-|------|------|---------|---------|
-| [LangChain 框架入门](docs/tools/langchain-intro.md) | 工具 | ⏳ | 2026-05-07 |
+| 目录 | 说明 |
+|------|------|
+| [Prompt 评测](benchmarks/prompt-evals/README.md) | Prompt 小样本评测 |
+| [Skill 测试](benchmarks/skill-tests/README.md) | Skill 单元测试 |
+| [Workflow 评测](benchmarks/workflow-evals/README.md) | Workflow 端到端评测 |
+| [评测报告](benchmarks/reports/README.md) | Benchmark 报告 |
 
-## 六、流程化指南 (Workflows)
+## 十二、模板 (Templates)
 
-| 文档 | 分类 | 验真状态 | 最后更新 |
-|------|------|---------|---------|
-| [AI 应用开发完整流程](docs/workflows/ai-app-development.md) | 流程 | ⏳ | 2026-05-07 |
-| [API 选型与迁移流程](docs/workflows/api-selection-migration.md) | 流程 | ⏳ | 2026-05-07 |
-| [从零搭建 RAG 系统](docs/workflows/build-rag-system.md) | 流程 | ⏳ | 2026-05-07 |
-| [提示词工程工作流](docs/workflows/prompt-engineering-workflow.md) | 流程 | ⏳ | 2026-05-07 |
+| 模板 | 类型 |
+|------|------|
+| [概念卡片模板](templates/concept-card-template.md) | 文档模板 |
+| [Playbook 模板](templates/playbook-template.md) | 文档模板 |
+| [验真报告模板](templates/verification-report-template.md) | 文档模板 |
+| [Prompt 资产模板](templates/prompt-asset-template.yaml) | YAML 模板 |
+| [Skill 模板](templates/skill-template.py) | Python 模板 |
+| [Workflow 模板](templates/workflow-template.yaml) | YAML 模板 |
+| [Agent 设计文档模板](templates/agent-design-doc-template.md) | 文档模板 |
+| [上线检查清单模板](templates/production-checklist-template.md) | 文档模板 |
 
-## 七、验真中心 (Verification)
+## 十三、可视化 (Visualization)
 
-| 文档 | 类型 | 验真状态 | 评级 |
-|------|------|---------|------|
-| [验真系统说明](verification/README.md) | 方法论 | ✅ | A |
-| [提示词验真模板](verification/prompts/template.md) | 模板 | ✅ | A |
-| [平台信息验真模板](verification/platforms/template.md) | 模板 | ✅ | A |
-| [Skills 验真模板](verification/skills/template.md) | 模板 | ✅ | A |
-| [OpenAI API 指南验真](verification/platforms/openai-api-2026-05.md) | 验真报告 | ✅ | B |
-| [Anthropic API 指南验真](verification/platforms/anthropic-claude-2026-05.md) | 验真报告 | ✅ | B |
+| 页面 | 说明 |
+|------|------|
+| [知识图谱](visualization/index.html) | 概念关系图谱 |
+| [Dashboard](visualization/dashboard.html) | 项目状态面板 |
+| [关系图](visualization/graph.html) | 增强知识图谱 |
 
-## 八、可视化 (Visualization)
+## 十四、脚本 (Scripts)
 
-| 文档 | 类型 | 说明 |
-|------|------|------|
-| [可视化总入口](visualization/index.html) | HTML | 概念关系图谱总入口 |
+| 脚本 | 说明 |
+|------|------|
+| [generate-index.py](scripts/generate-index.py) | 自动生成 INDEX.md |
+| [validate_metadata.py](scripts/validate_metadata.py) | 校验文档 metadata |
+| [check_links.py](scripts/check_links.py) | 检查链接完整性 |
+| [build_graph.py](scripts/build_graph.py) | 构建知识图谱数据 |
+| [run_verification.py](scripts/run_verification.py) | 运行验真检查 |
+| [generate_badges.py](scripts/generate_badges.py) | 生成 Badges |
