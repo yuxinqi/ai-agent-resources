@@ -3,140 +3,230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Agent 资源 — 验真仪表盘</title>
+<title>AI Agent Evidence Hub — 可信度与可用性仪表盘</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg-primary:#0a0e1a;--bg-secondary:#111827;--bg-card:#1a1f36;--bg-card-hover:#1f2647;
   --accent-blue:#3b82f6;--accent-purple:#8b5cf6;--accent-cyan:#06b6d4;--accent-green:#10b981;
-  --accent-orange:#f59e0b;--accent-red:#ef4444;--accent-pink:#ec4899;
+  --accent-yellow:#f59e0b;--accent-orange:#f97316;--accent-red:#ef4444;--accent-pink:#ec4899;
+  --accent-gray:#6b7280;
   --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;
   --border-color:#1e293b;--radius:12px;
+  /* Evidence level colors: L0=gray, L1=yellow, L2=blue, L3=purple, L4=green */
+  --ev-l0:#6b7280;--ev-l1:#f59e0b;--ev-l2:#3b82f6;--ev-l3:#8b5cf6;--ev-l4:#10b981;
+  /* Rating colors: A=green, B=blue, C=yellow, D=red */
+  --rt-a:#10b981;--rt-b:#3b82f6;--rt-c:#f59e0b;--rt-d:#ef4444;
 }
 html{scroll-behavior:smooth}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.6}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.05) 0%,transparent 50%);pointer-events:none;z-index:0}
 
-.header{position:relative;z-index:1;text-align:center;padding:48px 20px 32px;background:linear-gradient(180deg,rgba(59,130,246,.1) 0%,transparent 100%)}
-.header h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple),var(--accent-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;margin-bottom:6px}
-.header .subtitle{font-size:1rem;color:var(--text-secondary);letter-spacing:4px;font-weight:300}
+.header{position:relative;z-index:1;text-align:center;padding:40px 20px 24px;background:linear-gradient(180deg,rgba(59,130,246,.1) 0%,transparent 100%)}
+.header h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple),var(--accent-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1px;margin-bottom:4px}
+.header .subtitle{font-size:.95rem;color:var(--text-secondary);letter-spacing:2px;font-weight:300}
+.header .meta{font-size:.75rem;color:var(--text-muted);margin-top:8px}
+.header .meta a{color:var(--accent-cyan);text-decoration:none}
 
-.nav{position:relative;z-index:1;display:flex;justify-content:center;gap:4px;padding:0 20px;margin-bottom:32px;flex-wrap:wrap}
-.nav a{padding:10px 24px;text-decoration:none;color:var(--text-secondary);font-size:.9rem;font-weight:500;border-radius:8px;transition:all .25s;border:1px solid transparent;cursor:pointer}
+.nav{position:relative;z-index:1;display:flex;justify-content:center;gap:4px;padding:0 20px;margin-bottom:28px;flex-wrap:wrap}
+.nav a{padding:10px 22px;text-decoration:none;color:var(--text-secondary);font-size:.88rem;font-weight:500;border-radius:8px;transition:all .25s;border:1px solid transparent;cursor:pointer;white-space:nowrap}
 .nav a:hover,.nav a.active{color:var(--text-primary);background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3)}
 .nav a.active{background:rgba(59,130,246,.15);border-color:var(--accent-blue);box-shadow:0 0 15px rgba(59,130,246,.15)}
 
-.section{position:relative;z-index:1;max-width:1200px;margin:0 auto 48px;padding:0 20px}
-.section-title{font-size:1.3rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section{position:relative;z-index:1;max-width:1200px;margin:0 auto 40px;padding:0 20px}
+.section-title{font-size:1.2rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .section-title .badge{font-size:.7rem;font-weight:600;padding:2px 10px;border-radius:20px;background:rgba(59,130,246,.15);color:var(--accent-blue);border:1px solid rgba(59,130,246,.3)}
 
 .card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:24px;transition:all .3s}
 .card:hover{border-color:rgba(59,130,246,.3);box-shadow:0 0 20px rgba(59,130,246,.15)}
+.card+.card{margin-top:16px}
 
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
-.stat-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;text-align:center;transition:all .3s}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:18px 16px;text-align:center;transition:all .3s}
 .stat-card:hover{transform:translateY(-2px);border-color:rgba(59,130,246,.3)}
-.stat-card .stat-value{font-size:2rem;font-weight:800;margin-bottom:4px}
-.stat-card .stat-label{font-size:.85rem;color:var(--text-muted)}
+.stat-card .stat-value{font-size:1.8rem;font-weight:800;margin-bottom:2px}
+.stat-card .stat-label{font-size:.8rem;color:var(--text-muted)}
+.stat-card .stat-sub{font-size:.7rem;color:var(--text-muted);margin-top:2px}
 
 .table-wrapper{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-thead th{text-align:left;padding:12px 16px;font-size:.8rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid var(--border-color)}
-tbody td{padding:12px 16px;font-size:.9rem;border-bottom:1px solid rgba(30,41,59,.5);color:var(--text-secondary)}
+thead th{text-align:left;padding:10px 14px;font-size:.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid var(--border-color);white-space:nowrap}
+tbody td{padding:10px 14px;font-size:.88rem;border-bottom:1px solid rgba(30,41,59,.5);color:var(--text-secondary)}
 tbody tr:hover{background:rgba(59,130,246,.04)}
-td:first-child{font-weight:600;color:var(--text-primary)}
+tbody td a{color:var(--accent-cyan);text-decoration:none;font-weight:500}
+tbody td a:hover{text-decoration:underline}
 
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 12px;border-radius:20px;font-size:.78rem;font-weight:600}
 .badge-green{background:rgba(16,185,129,.12);color:var(--accent-green);border:1px solid rgba(16,185,129,.3)}
-.badge-yellow{background:rgba(245,158,11,.12);color:var(--accent-orange);border:1px solid rgba(245,158,11,.3)}
+.badge-yellow{background:rgba(245,158,11,.12);color:var(--accent-yellow);border:1px solid rgba(245,158,11,.3)}
 .badge-blue{background:rgba(59,130,246,.12);color:var(--accent-blue);border:1px solid rgba(59,130,246,.3)}
 .badge-purple{background:rgba(139,92,246,.12);color:var(--accent-purple);border:1px solid rgba(139,92,246,.3)}
 .badge-red{background:rgba(239,68,68,.12);color:var(--accent-red);border:1px solid rgba(239,68,68,.3)}
-.badge-cyan{background:rgba(6,182,212,.08);color:var(--accent-cyan);border:1px solid rgba(6,182,212,.2);font-size:.75rem}
+.badge-gray{background:rgba(107,114,128,.12);color:var(--accent-gray);border:1px solid rgba(107,114,128,.3)}
+.badge-cyan{background:rgba(6,182,212,.08);color:var(--accent-cyan);border:1px solid rgba(6,182,212,.2);font-size:.73rem}
+.badge-orange{background:rgba(249,115,22,.12);color:var(--accent-orange);border:1px solid rgba(249,115,22,.3)}
 
 .progress-bar{width:100%;height:8px;background:rgba(30,41,59,.6);border-radius:4px;overflow:hidden;margin-top:8px}
 .progress-fill{height:100%;border-radius:4px;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
 
-.bar-chart{margin-top:16px}
-.bar-group{margin-bottom:20px}
-.bar-group-title{font-size:.85rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.bar-chart{margin-top:8px}
 .bar-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-.bar-label{width:80px;font-size:.85rem;font-weight:600;color:var(--text-primary);text-align:right;flex-shrink:0}
+.bar-label{width:90px;font-size:.82rem;font-weight:600;color:var(--text-primary);text-align:right;flex-shrink:0}
 .bar-track{flex:1;height:24px;background:rgba(30,41,59,.6);border-radius:4px;overflow:hidden}
-.bar-fill{height:100%;border-radius:4px;transition:width 1.5s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:8px;font-size:.75rem;font-weight:600;color:white;min-width:20px}
-.bar-value{width:50px;font-size:.8rem;color:var(--text-secondary);flex-shrink:0}
+.bar-fill{height:100%;border-radius:4px;transition:width 1.5s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:8px;font-size:.73rem;font-weight:600;color:white;min-width:20px}
+.bar-value{width:40px;font-size:.78rem;color:var(--text-secondary);flex-shrink:0}
 
 .section-page{display:none}
 .section-page.active{display:block}
 
-.footer{position:relative;z-index:1;text-align:center;padding:32px 20px;border-top:1px solid var(--border-color);margin-top:32px}
-.footer p{color:var(--text-muted);font-size:.85rem}
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar select{background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border-color);border-radius:6px;padding:6px 12px;font-size:.82rem;cursor:pointer}
+.filter-bar select:focus{outline:none;border-color:var(--accent-blue)}
+
+.disclaimer{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 18px;margin-top:20px;font-size:.82rem;color:var(--text-muted);line-height:1.5}
+.disclaimer strong{color:var(--accent-yellow)}
+
+.method-table{width:100%}
+.method-table td:first-child{width:80px;white-space:nowrap}
+.method-section{margin-bottom:24px}
+.method-section h3{font-size:1rem;font-weight:600;margin-bottom:10px;color:var(--text-primary)}
+
+.ci-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.ci-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:10px}
+.ci-icon{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ci-icon.passed{background:var(--accent-green);box-shadow:0 0 6px rgba(16,185,129,.4)}
+.ci-icon.failed{background:var(--accent-red);box-shadow:0 0 6px rgba(239,68,68,.4)}
+.ci-name{font-size:.85rem;font-weight:600;color:var(--text-primary)}
+.ci-desc{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.empty-state .empty-icon{font-size:2rem;margin-bottom:8px}
+.empty-state p{font-size:.9rem}
+
+.coverage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px}
+.coverage-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:18px}
+.coverage-card .cov-label{font-size:.85rem;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.coverage-card .cov-scope{font-size:.75rem;color:var(--text-muted);margin-bottom:10px}
+.coverage-card .cov-value{font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.coverage-card .cov-target{font-size:.75rem;color:var(--text-muted)}
+
+.footer{position:relative;z-index:1;text-align:center;padding:28px 20px;border-top:1px solid var(--border-color);margin-top:28px}
+.footer p{color:var(--text-muted);font-size:.82rem}
 .footer a{color:var(--accent-blue);text-decoration:none}
 
+.priority-p0{color:var(--accent-red);font-weight:700}
+.priority-p1{color:var(--accent-orange);font-weight:600}
+.priority-p2{color:var(--accent-yellow);font-weight:500}
+.priority-p3{color:var(--text-muted)}
+
 @media(max-width:768px){
-  .header h1{font-size:1.6rem}
+  .header h1{font-size:1.5rem}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .bar-label{width:60px;font-size:.75rem}
+  .bar-label{width:60px;font-size:.73rem}
+  .nav a{padding:8px 14px;font-size:.8rem}
+  .coverage-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
 <header class="header">
-  <h1>验真状态仪表盘</h1>
-  <p class="subtitle">EVIDENCE HUB DASHBOARD</p>
+  <h1>AI Agent Evidence Hub</h1>
+  <p class="subtitle">可信度与可用性仪表盘</p>
+  <p class="meta" id="headerMeta">展示知识条目、可运行资产、验真报告、复现状态与待复验任务</p>
 </header>
 
 <nav class="nav" id="mainNav">
   <a href="#" class="active" data-section="overview">总览</a>
+  <a href="#" data-section="assets">可用资产</a>
   <a href="#" data-section="reports">验真报告</a>
-  <a href="#" data-section="evidence">证据分布</a>
-  <a href="#" data-section="ratings">评级分析</a>
+  <a href="#" data-section="review">待复验</a>
+  <a href="#" data-section="methodology">方法说明</a>
 </nav>
 
-<!-- Overview -->
+<!-- ==================== Overview ==================== -->
 <section class="section section-page active" id="section-overview">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-value" style="color:var(--accent-blue)" id="totalDocs">0</div>
-      <div class="stat-label">文档总数</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" style="color:var(--accent-green)" id="verifiedDocs">0</div>
-      <div class="stat-label">已验真</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" style="color:var(--accent-purple)" id="coverage">0%</div>
-      <div class="stat-label">验真覆盖率</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" style="color:var(--accent-cyan)" id="reportCount">0</div>
-      <div class="stat-label">验真报告</div>
-    </div>
-  </div>
+  <div class="stats-grid" id="overviewStats"></div>
 
-  <div class="card">
-    <div class="section-title">验真覆盖率 <span class="badge">Progress</span></div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="coverageBar" style="width:0%;background:linear-gradient(90deg,var(--accent-blue),var(--accent-green))"></div>
-    </div>
-    <p style="margin-top:8px;color:var(--text-muted);font-size:.85rem">目标：80% 覆盖率</p>
+  <div class="section-title">验证覆盖率 <span class="badge">Coverage</span></div>
+  <div class="coverage-grid" id="coverageGrid"></div>
+
+  <div class="section-title" style="margin-top:24px">CI 检查状态 <span class="badge">CI</span></div>
+  <div class="ci-grid" id="ciGrid"></div>
+
+  <div class="disclaimer">
+    <strong>免责声明：</strong>验真结果仅代表指定日期、指定环境、指定测试集下的结果，不保证在所有场景中稳定有效。Prompt、Workflow、平台能力变化很快，请结合自身场景独立判断。
   </div>
 </section>
 
-<!-- Reports -->
-<section class="section section-page" id="section-reports">
-  <div class="section-title">验真报告 <span class="badge">Reports</span></div>
+<!-- ==================== Assets ==================== -->
+<section class="section section-page" id="section-assets">
+  <div class="section-title">可用资产 <span class="badge">Assets</span></div>
+  <div class="filter-bar">
+    <select id="assetTypeFilter">
+      <option value="all">全部类型</option>
+      <option value="prompt">Prompt</option>
+      <option value="skill">Skill</option>
+      <option value="workflow">Workflow</option>
+    </select>
+    <select id="assetRatingFilter">
+      <option value="all">全部推荐等级</option>
+      <option value="A">A — 推荐实际使用</option>
+      <option value="B">B — 推荐学习或试点</option>
+      <option value="C">C — 仅供参考</option>
+      <option value="D">D — 不推荐</option>
+    </select>
+  </div>
   <div class="card">
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>报告名称</th>
+            <th>资产</th>
             <th>类型</th>
+            <th>关联 Playbook</th>
             <th>证据等级</th>
-            <th>评级</th>
-            <th>验真日期</th>
+            <th>推荐等级</th>
+            <th>测试状态</th>
+            <th>验真报告</th>
+          </tr>
+        </thead>
+        <tbody id="assetsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== Reports ==================== -->
+<section class="section section-page" id="section-reports">
+  <div class="section-title">验真报告 <span class="badge">Reports</span></div>
+  <div class="filter-bar">
+    <select id="reportTypeFilter">
+      <option value="all">全部类型</option>
+      <option value="prompt">Prompt</option>
+      <option value="skill">Skill</option>
+      <option value="workflow">Workflow</option>
+      <option value="platform">Platform</option>
+    </select>
+    <select id="reportStatusFilter">
+      <option value="all">全部状态</option>
+      <option value="valid">Valid — 有效</option>
+      <option value="expiring">Expiring — 即将过期</option>
+      <option value="expired">Expired — 已过期</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>报告</th>
+            <th>对象类型</th>
+            <th>证据等级</th>
+            <th>推荐等级</th>
+            <th>最后验真</th>
+            <th>有效期至</th>
+            <th>复现状态</th>
             <th>状态</th>
           </tr>
         </thead>
@@ -146,55 +236,154 @@ td:first-child{font-weight:600;color:var(--text-primary)}
   </div>
 </section>
 
-<!-- Evidence Distribution -->
-<section class="section section-page" id="section-evidence">
-  <div class="section-title">证据等级分布 <span class="badge">Evidence</span></div>
-  <div class="card">
-    <div class="bar-chart" id="evidenceChart"></div>
+<!-- ==================== Review Queue ==================== -->
+<section class="section section-page" id="section-review">
+  <div class="section-title">待复验队列 <span class="badge">Review Queue</span></div>
+  <div class="filter-bar">
+    <select id="reviewIssueFilter">
+      <option value="all">全部问题类型</option>
+      <option value="verification_expiring_soon">即将过期</option>
+      <option value="missing_verification_report">缺验证报告</option>
+      <option value="low_evidence_level">低证据等级</option>
+      <option value="missing_metadata">缺元数据</option>
+    </select>
+    <select id="reviewPriorityFilter">
+      <option value="all">全部优先级</option>
+      <option value="P0">P0 — 紧急</option>
+      <option value="P1">P1 — 高</option>
+      <option value="P2">P2 — 中</option>
+      <option value="P3">P3 — 低</option>
+    </select>
   </div>
-
-  <div class="card" style="margin-top:16px">
-    <div class="section-title">按分类验真状态</div>
-    <div class="bar-chart" id="categoryChart"></div>
+  <div class="card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>待处理项</th>
+            <th>类型</th>
+            <th>问题</th>
+            <th>优先级</th>
+            <th>建议动作</th>
+          </tr>
+        </thead>
+        <tbody id="reviewTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="disclaimer" style="margin-top:16px">
+    💡 <strong>Good First Verification：</strong>标记为 P2 的「缺元数据」任务是贡献者入门的好选择，只需阅读文档并补充 frontmatter 中的 evidence_level 和 practical_rating 字段。
   </div>
 </section>
 
-<!-- Ratings -->
-<section class="section section-page" id="section-ratings">
-  <div class="section-title">评级分析 <span class="badge">Ratings</span></div>
-  <div class="card">
-    <div class="bar-chart" id="ratingChart"></div>
-  </div>
+<!-- ==================== Methodology ==================== -->
+<section class="section section-page" id="section-methodology">
+  <div class="section-title">方法说明 <span class="badge">Methodology</span></div>
 
-  <div class="card" style="margin-top:16px">
-    <div class="section-title">评级说明</div>
-    <table>
-      <thead><tr><th>评级</th><th>含义</th><th>说明</th></tr></thead>
-      <tbody>
-        <tr><td><span class="badge badge-green">A</span></td><td>完全验证通过</td><td>通过实际操作或官方文档验证，信息完全准确</td></tr>
-        <tr><td><span class="badge badge-blue">B</span></td><td>大部分验证通过</td><td>多方来源交叉验证，大部分信息准确</td></tr>
-        <tr><td><span class="badge badge-yellow">C</span></td><td>部分验证通过</td><td>基于公开资料整理，部分信息未深度验证</td></tr>
-        <tr><td><span class="badge badge-red">D</span></td><td>待验真</td><td>已编写但未经过任何验证</td></tr>
-      </tbody>
-    </table>
+  <div class="card">
+    <div class="method-section">
+      <h3>证据等级 Evidence Level</h3>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">回答「证据强不强」——从收录到实战验证的递进体系</p>
+      <table class="method-table">
+        <thead><tr><th>等级</th><th>含义</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-gray">L0</span></td><td>未验证</td><td>仅收录或编写，尚无来源确认或复现记录</td></tr>
+          <tr><td><span class="badge badge-yellow">L1</span></td><td>来源可信</td><td>来源可靠，但尚未完成本项目复现</td></tr>
+          <tr><td><span class="badge badge-blue">L2</span></td><td>基础复现</td><td>已完成最小测试，有输入、输出和环境记录</td></tr>
+          <tr><td><span class="badge badge-purple">L3</span></td><td>多场景测试</td><td>已完成多样本、多任务或多模型测试</td></tr>
+          <tr><td><span class="badge badge-green">L4</span></td><td>实战验证</td><td>已在真实项目、长期任务或生产环境中验证</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="method-section">
+      <h3>推荐等级 Practical Rating</h3>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">回答「值不值得用」——独立于证据等级的实用性评估</p>
+      <table class="method-table">
+        <thead><tr><th>等级</th><th>含义</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-green">A</span></td><td>推荐实际使用</td><td>稳定性、复现性和风险控制较好</td></tr>
+          <tr><td><span class="badge badge-blue">B</span></td><td>推荐学习或试点</td><td>效果可用，但存在明确限制</td></tr>
+          <tr><td><span class="badge badge-yellow">C</span></td><td>仅供参考</td><td>可作为思路参考，不建议直接复用</td></tr>
+          <tr><td><span class="badge badge-red">D</span></td><td>不推荐</td><td>已失效、不可复现、风险较高或有更好替代方案</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="method-section">
+      <h3>评级与证据等级的关系</h3>
+      <p style="font-size:.85rem;color:var(--text-muted);line-height:1.7">
+        证据等级（Evidence Level）衡量的是<strong style="color:var(--text-primary)">验证深度</strong>，回答"我们对这条内容的信心有多大"。<br>
+        推荐等级（Practical Rating）衡量的是<strong style="color:var(--text-primary)">实用价值</strong>，回答"这条内容对用户有多大帮助"。<br><br>
+        两者独立评估，不一一对应。例如：一篇 L2 基础复现的文档，如果内容实用、限制明确，可以是 A 级；一篇 L3 多场景测试的文档，如果场景过于特殊、不易复用，可能只是 B 级。<br><br>
+        「待验真」属于 L0 证据等级，不放在 D 级推荐等级中。D 级代表的是「不推荐使用」，而非「未验证」。
+      </p>
+    </div>
+
+    <div class="method-section">
+      <h3>验证覆盖率计算方式</h3>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">不同类别的内容适用不同验证标准</p>
+      <table class="method-table">
+        <thead><tr><th>覆盖率</th><th>计算对象</th><th>目标</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--accent-red)">Critical</td><td>P0 核心内容（核心 Playbook + 核心资产）</td><td>90%</td><td>项目门面，必须高覆盖</td></tr>
+          <tr><td style="color:var(--accent-blue)">Asset</td><td>Prompt、Skill、Workflow、Example</td><td>80%</td><td>可运行资产，需保证基本验证</td></tr>
+          <tr><td style="color:var(--accent-gray)">Knowledge</td><td>Concepts、Patterns、Tools、Platforms</td><td>60%</td><td>知识文档，部分内容天然难以完全验证</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="method-section">
+      <h3>有效期规则</h3>
+      <p style="font-size:.85rem;color:var(--text-muted);line-height:1.7">
+        每个验证报告都有 <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px">valid_until</code> 字段，通常为验证日期后 3 个月。<br>
+        平台类文档因价格和模型变动频繁，有效期通常为 1 个月。<br>
+        超过有效期后，状态自动从 <span class="badge badge-green" style="font-size:.7rem">Valid</span> 变为 <span class="badge badge-red" style="font-size:.7rem">Expired</span>，需重新验证。<br>
+        距过期不足 30 天的，标记为 <span class="badge badge-yellow" style="font-size:.7rem">Expiring</span>。
+      </p>
+    </div>
+
+    <div class="method-section">
+      <h3>自动检查与人工验证</h3>
+      <p style="font-size:.85rem;color:var(--text-muted);line-height:1.7">
+        <strong style="color:var(--text-primary)">CI 自动检查（每次提交）：</strong>metadata 格式校验、内部链接检查、INDEX.md 自动更新、知识图谱构建、资产冒烟测试。<br>
+        <strong style="color:var(--text-primary)">人工验证（定期）：</strong>内容准确性、效果评估、跨模型测试、成本与延迟测量。人工验证结果记录在 <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px">verification/reports/</code> 中。
+      </p>
+    </div>
   </div>
 </section>
 
 <footer class="footer">
-  <p>AI Agent Resources — Evidence Hub Dashboard</p>
-  <p style="margin-top:4px">最后更新: 2026-05-08</p>
+  <p>AI Agent Evidence Hub — 可信度与可用性仪表盘</p>
+  <p style="margin-top:4px" id="footerMeta">数据生成时间：加载中...</p>
 </footer>
 
 <script>
 (function(){
   'use strict';
 
-  var navLinks=document.querySelectorAll('.nav a');
-  var sections=document.querySelectorAll('.section-page');
+  /* ───── Color Mapping ───── */
+  var evColors = {L0:'#6b7280',L1:'#f59e0b',L2:'#3b82f6',L3:'#8b5cf6',L4:'#10b981'};
+  var evClasses = {L0:'badge-gray',L1:'badge-yellow',L2:'badge-blue',L3:'badge-purple',L4:'badge-green'};
+  var rtColors = {A:'#10b981',B:'#3b82f6',C:'#f59e0b',D:'#ef4444'};
+  var rtClasses = {A:'badge-green',B:'badge-blue',C:'badge-yellow',D:'badge-red'};
+  var typeLabels = {prompt:'Prompt',skill:'Skill',workflow:'Workflow',platform:'Platform',concept:'Concept',tool:'Tool'};
+  var typeClasses = {prompt:'badge-cyan',skill:'badge-purple',workflow:'badge-pink',platform:'badge-orange',concept:'badge-blue',tool:'badge-green'};
+  var issueLabels = {
+    verification_expiring_soon:'即将过期',
+    missing_verification_report:'缺验证报告',
+    low_evidence_level:'低证据等级',
+    missing_metadata:'缺元数据',
+    broken_link:'链接失效'
+  };
+
+  /* ───── Navigation ───── */
+  var navLinks = document.querySelectorAll('.nav a');
+  var sections = document.querySelectorAll('.section-page');
   navLinks.forEach(function(link){
     link.addEventListener('click',function(e){
       e.preventDefault();
-      var target=this.getAttribute('data-section');
+      var target = this.getAttribute('data-section');
       navLinks.forEach(function(l){l.classList.remove('active')});
       this.classList.add('active');
       sections.forEach(function(s){s.classList.remove('active')});
@@ -202,71 +391,258 @@ td:first-child{font-weight:600;color:var(--text-primary)}
     });
   });
 
-  var reports=[
-    {name:"提示词综合研究摘要",type:"prompts",evidence:"L2",rating:"B",date:"2026-05-08",status:"valid"},
-    {name:"代码审查提示词",type:"prompts",evidence:"L2",rating:"B",date:"2026-05-08",status:"valid"},
-    {name:"Web 搜索技能",type:"skills",evidence:"L2",rating:"B",date:"2026-05-08",status:"valid"},
-    {name:"研究代理工作流",type:"workflows",evidence:"L2",rating:"B",date:"2026-05-08",status:"valid"},
-    {name:"OpenAI API 平台",type:"platforms",evidence:"L2",rating:"B",date:"2026-05-08",status:"valid"},
-  ];
+  /* ───── Data Loading ───── */
+  var DATA = null;
 
-  var stats={total:20,verified:12,coverage:60,reports:5};
-  document.getElementById('totalDocs').textContent=stats.total;
-  document.getElementById('verifiedDocs').textContent=stats.verified;
-  document.getElementById('coverage').textContent=stats.coverage+'%';
-  document.getElementById('reportCount').textContent=stats.reports;
-  setTimeout(function(){document.getElementById('coverageBar').style.width=stats.coverage+'%'},200);
+  function loadData(){
+    var jsonPath = 'data/dashboard-data.json';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', jsonPath, true);
+    xhr.onload = function(){
+      if(xhr.status === 200){
+        try{
+          DATA = JSON.parse(xhr.responseText);
+          renderAll();
+        }catch(e){
+          console.error('JSON parse error:', e);
+          renderFallback();
+        }
+      }else{
+        renderFallback();
+      }
+    };
+    xhr.onerror = function(){ renderFallback(); };
+    xhr.send();
+  }
 
-  var tbody=document.getElementById('reportsTableBody');
-  tbody.innerHTML='';
-  var typeLabels={prompts:"提示词",skills:"技能",workflows:"工作流",platforms:"平台"};
-  reports.forEach(function(r){
-    var tr=document.createElement('tr');
-    var ratingClass=r.rating==='A'?'badge-green':r.rating==='B'?'badge-blue':r.rating==='C'?'badge-yellow':'badge-red';
-    tr.innerHTML='<td>'+r.name+'</td><td><span class="badge badge-cyan">'+(typeLabels[r.type]||r.type)+'</span></td><td><span class="badge badge-purple">'+r.evidence+'</span></td><td><span class="badge '+ratingClass+'">'+r.rating+'</span></td><td>'+r.date+'</td><td><span class="badge badge-green">有效</span></td>';
-    tbody.appendChild(tr);
-  });
+  function renderFallback(){
+    /* Provide minimal inline data if JSON fails to load */
+    DATA = {
+      generated_at: new Date().toISOString(),
+      version: '0.1.0-fallback',
+      data_source: 'fallback',
+      disclaimer: '数据加载失败，显示备用数据。',
+      summary: {knowledge_items:47,runnable_assets:7,examples_count:2,verified_items:34,reproducible_reports:5,expiring_soon:0,ci_passed:4,ci_total:5,
+        coverage:{critical_coverage:{value:90,target:90},asset_coverage:{value:71,target:80},knowledge_coverage:{value:72,target:60}}},
+      reports:[],assets:[],review_queue:[],
+      knowledge_distribution:{by_category:{concepts:11,patterns:6,playbooks:5,platforms:9,tools:5,case_studies:4,getting_started:4,examples:2},by_evidence_level:{L0:3,L1:8,L2:21,L3:2,L4:0,unrated:13},by_practical_rating:{A:21,B:10,C:3,D:0,unrated:13}},
+      ci_checks:[{name:'validate-metadata',status:'passed'},{name:'check-links',status:'passed'},{name:'update-index',status:'passed'},{name:'build-graph',status:'passed'},{name:'smoke-test-assets',status:'failed'}]
+    };
+    renderAll();
+  }
 
-  function renderBarChart(containerId,data,maxVal){
-    var el=document.getElementById(containerId);el.innerHTML='';
-    data.forEach(function(d){
-      var group=document.createElement('div');group.className='bar-group';
-      var row=document.createElement('div');row.className='bar-row';
-      var label=document.createElement('div');label.className='bar-label';label.textContent=d.label;
-      var track=document.createElement('div');track.className='bar-track';
-      var fill=document.createElement('div');fill.className='bar-fill';fill.style.width='0%';fill.style.background='linear-gradient(90deg,'+d.color+','+d.color+'88)';fill.textContent=d.value>0?d.value:'';
-      var value=document.createElement('div');value.className='bar-value';value.textContent=d.value;
-      track.appendChild(fill);row.appendChild(label);row.appendChild(track);row.appendChild(value);
-      group.appendChild(row);el.appendChild(group);
-      setTimeout(function(){fill.style.width=(d.value/maxVal*100)+'%'},200);
+  /* ───── Rendering ───── */
+  function renderAll(){
+    renderHeader();
+    renderOverviewStats();
+    renderCoverage();
+    renderCI();
+    renderAssets();
+    renderReports();
+    renderReview();
+    renderFooter();
+  }
+
+  function renderHeader(){
+    var meta = document.getElementById('headerMeta');
+    var src = DATA.data_source === 'manual-curation' ? '当前为 v' + DATA.version + ' 手动数据样板' : '数据由脚本自动生成';
+    meta.textContent = '展示知识条目、可运行资产、验真报告、复现状态与待复验任务 · ' + src;
+  }
+
+  function renderFooter(){
+    var el = document.getElementById('footerMeta');
+    var d = new Date(DATA.generated_at);
+    el.textContent = '数据生成时间：' + d.toLocaleString('zh-CN') + ' · 数据来源：' + DATA.data_source;
+  }
+
+  /* ── Overview Stats ── */
+  function renderOverviewStats(){
+    var s = DATA.summary;
+    var items = [
+      {value:s.knowledge_items, label:'Knowledge Items', sub:'知识条目（docs/）', color:'var(--accent-cyan)'},
+      {value:s.runnable_assets + s.examples_count, label:'Runnable Assets', sub:'可运行资产（assets/ + examples/）', color:'var(--accent-purple)'},
+      {value:s.verified_items, label:'Verified Items', sub:'已验证条目（≥ L1）', color:'var(--accent-green)'},
+      {value:s.reproducible_reports, label:'Reproducible Reports', sub:'可复现报告', color:'var(--accent-blue)'},
+      {value:s.expiring_soon, label:'Expiring Soon', sub:'30天内即将过期', color:s.expiring_soon>0?'var(--accent-red)':'var(--accent-green)'},
+      {value:s.ci_passed + '/' + s.ci_total, label:'CI Checks', sub:'自动化检查', color:s.ci_passed===s.ci_total?'var(--accent-green)':'var(--accent-yellow)'}
+    ];
+    var grid = document.getElementById('overviewStats');
+    grid.innerHTML = '';
+    items.forEach(function(item){
+      var card = document.createElement('div');
+      card.className = 'stat-card';
+      card.innerHTML = '<div class="stat-value" style="color:'+item.color+'">'+item.value+'</div><div class="stat-label">'+item.label+'</div><div class="stat-sub">'+item.sub+'</div>';
+      grid.appendChild(card);
     });
   }
 
-  var evidenceData=[
-    {label:'L0',value:2,color:'#10b981'},
-    {label:'L1',value:3,color:'#3b82f6'},
-    {label:'L2',value:5,color:'#f59e0b'},
-    {label:'L3',value:2,color:'#f97316'},
-    {label:'L4',value:8,color:'#ef4444'}
-  ];
-  renderBarChart('evidenceChart',evidenceData,10);
+  /* ── Coverage ── */
+  function renderCoverage(){
+    var cov = DATA.summary.coverage;
+    var grid = document.getElementById('coverageGrid');
+    grid.innerHTML = '';
+    var items = [
+      {key:'critical_coverage', label:'Critical Coverage', scope:'核心 Playbook + 核心资产', color:'var(--accent-red)'},
+      {key:'asset_coverage', label:'Asset Coverage', scope:'Prompt + Skill + Workflow + Example', color:'var(--accent-blue)'},
+      {key:'knowledge_coverage', label:'Knowledge Coverage', scope:'Concepts + Patterns + Tools + Platforms', color:'var(--accent-gray)'}
+    ];
+    items.forEach(function(item){
+      var d = cov[item.key];
+      var pct = d.value;
+      var target = d.target;
+      var color = pct >= target ? 'var(--accent-green)' : pct >= target*0.8 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+      var card = document.createElement('div');
+      card.className = 'coverage-card';
+      card.innerHTML =
+        '<div class="cov-label">'+item.label+'</div>'+
+        '<div class="cov-scope">'+d.scope+'</div>'+
+        '<div class="cov-value" style="color:'+color+'">'+pct+'%</div>'+
+        '<div class="progress-bar"><div class="progress-fill" style="width:0%;background:linear-gradient(90deg,'+color+','+color+'88)"></div></div>'+
+        '<div class="cov-target">目标：'+target+'%'+(pct>=target?' ✅':'（还差 '+(target-pct)+'%）')+'</div>';
+      grid.appendChild(card);
+      setTimeout(function(){card.querySelector('.progress-fill').style.width=pct+'%'},300);
+    });
+  }
 
-  var categoryData=[
-    {label:'平台',value:4,color:'#10b981'},
-    {label:'提示词',value:3,color:'#8b5cf6'},
-    {label:'技能',value:2,color:'#f59e0b'},
-    {label:'工作流',value:2,color:'#ec4899'},
-    {label:'概念',value:1,color:'#3b82f6'}
-  ];
-  renderBarChart('categoryChart',categoryData,6);
+  /* ── CI ── */
+  function renderCI(){
+    var grid = document.getElementById('ciGrid');
+    grid.innerHTML = '';
+    (DATA.ci_checks||[]).forEach(function(check){
+      var card = document.createElement('div');
+      card.className = 'ci-card';
+      card.innerHTML = '<div class="ci-icon '+check.status+'"></div><div><div class="ci-name">'+check.name+'</div><div class="ci-desc">'+check.description+'</div></div>';
+      grid.appendChild(card);
+    });
+  }
 
-  var ratingData=[
-    {label:'A',value:3,color:'#10b981'},
-    {label:'B',value:5,color:'#3b82f6'},
-    {label:'C',value:4,color:'#f59e0b'},
-    {label:'D',value:8,color:'#ef4444'}
-  ];
-  renderBarChart('ratingChart',ratingData,10);
+  /* ── Assets ── */
+  function renderAssets(){
+    var assets = DATA.assets || [];
+    var tbody = document.getElementById('assetsTableBody');
+    var typeFilter = document.getElementById('assetTypeFilter');
+    var ratingFilter = document.getElementById('assetRatingFilter');
+
+    function draw(){
+      var ft = typeFilter.value;
+      var fr = ratingFilter.value;
+      var filtered = assets.filter(function(a){
+        return (ft==='all'||a.type===ft) && (fr==='all'||a.practical_rating===fr);
+      });
+      tbody.innerHTML = '';
+      if(filtered.length===0){
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><p>暂无符合条件的资产</p></td></tr>';
+        return;
+      }
+      filtered.forEach(function(a){
+        var tr = document.createElement('tr');
+        var testBadge = a.test_status==='passed'?'<span class="badge badge-green">Passed</span>':a.test_status==='partial'?'<span class="badge badge-yellow">Partial</span>':'<span class="badge badge-gray">None</span>';
+        var reportCell = a.has_report ? '<a href="'+a.report_path+'">查看报告</a>' : '<span style="color:var(--text-muted)">—</span>';
+        tr.innerHTML =
+          '<td><a href="'+a.path+'">'+a.title+'</a></td>'+
+          '<td><span class="badge '+(typeClasses[a.type]||'badge-cyan')+'">'+(typeLabels[a.type]||a.type)+'</span></td>'+
+          '<td><a href="'+a.playbook_path+'">'+a.playbook+'</a></td>'+
+          '<td><span class="badge '+(evClasses[a.evidence_level]||'badge-gray')+'">'+a.evidence_level+'</span></td>'+
+          '<td><span class="badge '+(rtClasses[a.practical_rating]||'badge-gray')+'">'+a.practical_rating+'</span></td>'+
+          '<td>'+testBadge+'</td>'+
+          '<td>'+reportCell+'</td>';
+        tbody.appendChild(tr);
+      });
+    }
+    typeFilter.addEventListener('change',draw);
+    ratingFilter.addEventListener('change',draw);
+    draw();
+  }
+
+  /* ── Reports ── */
+  function renderReports(){
+    var reports = DATA.reports || [];
+    var tbody = document.getElementById('reportsTableBody');
+    var typeFilter = document.getElementById('reportTypeFilter');
+    var statusFilter = document.getElementById('reportStatusFilter');
+
+    function computeStatus(r){
+      var now = new Date();
+      var validUntil = new Date(r.valid_until);
+      var daysLeft = (validUntil - now) / (1000*60*60*24);
+      if(daysLeft < 0) return 'expired';
+      if(daysLeft < 30) return 'expiring';
+      return 'valid';
+    }
+
+    function draw(){
+      var ft = typeFilter.value;
+      var fs = statusFilter.value;
+      var enriched = reports.map(function(r){
+        r._status = computeStatus(r);
+        return r;
+      });
+      var filtered = enriched.filter(function(r){
+        return (ft==='all'||r.target_type===ft) && (fs==='all'||r._status===fs);
+      });
+      tbody.innerHTML = '';
+      if(filtered.length===0){
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>暂无符合条件的报告</p></td></tr>';
+        return;
+      }
+      filtered.forEach(function(r){
+        var tr = document.createElement('tr');
+        var statusBadge = r._status==='valid'?'<span class="badge badge-green">Valid</span>':r._status==='expiring'?'<span class="badge badge-yellow">Expiring</span>':'<span class="badge badge-red">Expired</span>';
+        var reproBadge = r.reproducible?'<span class="badge badge-green">可复现</span>':'<span class="badge badge-gray">不可复现</span>';
+        tr.innerHTML =
+          '<td><a href="'+r.report_path+'">'+r.title+'</a></td>'+
+          '<td><span class="badge '+(typeClasses[r.target_type]||'badge-cyan')+'">'+(typeLabels[r.target_type]||r.target_type)+'</span></td>'+
+          '<td><span class="badge '+(evClasses[r.evidence_level]||'badge-gray')+'">'+r.evidence_level+'</span></td>'+
+          '<td><span class="badge '+(rtClasses[r.practical_rating]||'badge-gray')+'">'+r.practical_rating+'</span></td>'+
+          '<td>'+r.verified_at+'</td>'+
+          '<td>'+r.valid_until+'</td>'+
+          '<td>'+reproBadge+'</td>'+
+          '<td>'+statusBadge+'</td>';
+        tbody.appendChild(tr);
+      });
+    }
+    typeFilter.addEventListener('change',draw);
+    statusFilter.addEventListener('change',draw);
+    draw();
+  }
+
+  /* ── Review Queue ── */
+  function renderReview(){
+    var queue = DATA.review_queue || [];
+    var tbody = document.getElementById('reviewTableBody');
+    var issueFilter = document.getElementById('reviewIssueFilter');
+    var priorityFilter = document.getElementById('reviewPriorityFilter');
+
+    function draw(){
+      var fi = issueFilter.value;
+      var fp = priorityFilter.value;
+      var filtered = queue.filter(function(item){
+        return (fi==='all'||item.issue===fi) && (fp==='all'||item.priority===fp);
+      });
+      tbody.innerHTML = '';
+      if(filtered.length===0){
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><p>暂无待复验项 🎉</p></td></tr>';
+        return;
+      }
+      filtered.forEach(function(item){
+        var tr = document.createElement('tr');
+        var pClass = 'priority-'+item.priority.toLowerCase();
+        tr.innerHTML =
+          '<td><a href="'+item.path+'">'+item.title+'</a></td>'+
+          '<td><span class="badge '+(typeClasses[item.type]||'badge-cyan')+'">'+(typeLabels[item.type]||item.type)+'</span></td>'+
+          '<td><span class="badge badge-orange">'+(issueLabels[item.issue]||item.issue)+'</span></td>'+
+          '<td><span class="'+pClass+'">'+item.priority+'</span></td>'+
+          '<td>'+item.action+'</td>';
+        tbody.appendChild(tr);
+      });
+    }
+    issueFilter.addEventListener('change',draw);
+    priorityFilter.addEventListener('change',draw);
+    draw();
+  }
+
+  /* ── Bootstrap ── */
+  loadData();
 
 })();
 </script>

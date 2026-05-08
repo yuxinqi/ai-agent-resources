@@ -1,0 +1,379 @@
+{
+  "generated_at": "2026-05-08T14:30:00+08:00",
+  "version": "0.1.0",
+  "data_source": "manual-curation",
+  "disclaimer": "验真结果仅代表指定日期、指定环境、指定测试集下的结果，不保证在所有场景中稳定有效。",
+
+  "summary": {
+    "knowledge_items": 47,
+    "runnable_assets": 7,
+    "examples_count": 2,
+    "verified_items": 34,
+    "reproducible_reports": 5,
+    "expiring_soon": 0,
+    "ci_passed": 4,
+    "ci_total": 5,
+    "coverage": {
+      "critical_coverage": {
+        "value": 90,
+        "target": 90,
+        "scope": "核心 Playbook + 核心资产"
+      },
+      "asset_coverage": {
+        "value": 71,
+        "target": 80,
+        "scope": "Prompt + Skill + Workflow + Example"
+      },
+      "knowledge_coverage": {
+        "value": 72,
+        "target": 60,
+        "scope": "Concepts + Patterns + Tools + Platforms"
+      }
+    }
+  },
+
+  "reports": [
+    {
+      "id": "report-research-summary-202605",
+      "title": "提示词综合研究摘要验真报告",
+      "target_type": "prompt",
+      "target_title": "Research Summary Prompt",
+      "target_path": "assets/prompts/research-summary/",
+      "report_path": "verification/reports/prompts/research-summary-202605.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "verified_at": "2026-05-08",
+      "valid_until": "2026-08-08",
+      "status": "valid",
+      "reproducible": true,
+      "verified_by": "AI 交叉验证",
+      "summary": "提示词最佳实践核心原则准确，但部分技巧因模型更新效果已变"
+    },
+    {
+      "id": "report-code-review-202605",
+      "title": "代码审查提示词验真报告",
+      "target_type": "prompt",
+      "target_title": "Code Review Prompt",
+      "target_path": "assets/prompts/code-review/",
+      "report_path": "verification/reports/prompts/code-review-202605.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "verified_at": "2026-05-08",
+      "valid_until": "2026-08-08",
+      "status": "valid",
+      "reproducible": true,
+      "verified_by": "AI 交叉验证",
+      "summary": "代码审查提示词能识别常见问题，但在复杂逻辑 Bug 和安全漏洞方面能力有限"
+    },
+    {
+      "id": "report-web-search-202605",
+      "title": "Web 搜索技能验真报告",
+      "target_type": "skill",
+      "target_title": "Web Search Skill",
+      "target_path": "assets/skills/web-search/",
+      "report_path": "verification/reports/skills/web-search-202605.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "verified_at": "2026-05-08",
+      "valid_until": "2026-08-08",
+      "status": "valid",
+      "reproducible": true,
+      "verified_by": "AI 交叉验证",
+      "summary": "Web 搜索技能能获取实时信息，但在信息筛选和可信度判断方面存在局限"
+    },
+    {
+      "id": "report-research-agent-202605",
+      "title": "研究代理工作流验真报告",
+      "target_type": "workflow",
+      "target_title": "Research Agent Workflow",
+      "target_path": "assets/workflows/research-agent/",
+      "report_path": "verification/reports/workflows/research-agent-202605.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "verified_at": "2026-05-08",
+      "valid_until": "2026-08-08",
+      "status": "valid",
+      "reproducible": true,
+      "verified_by": "AI 交叉验证",
+      "summary": "研究代理工作流在标准场景下表现良好，复杂多步骤任务偶有失败"
+    },
+    {
+      "id": "report-openai-api-202605",
+      "title": "OpenAI API 平台验真报告",
+      "target_type": "platform",
+      "target_title": "OpenAI API 使用指南",
+      "target_path": "docs/platforms/openai-api-guide.md",
+      "report_path": "verification/reports/platforms/openai-api-202605.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "verified_at": "2026-05-08",
+      "valid_until": "2026-06-08",
+      "status": "valid",
+      "reproducible": true,
+      "verified_by": "AI 交叉验证 + API 调用测试",
+      "summary": "注册流程、SDK 使用、限流信息准确；定价和模型列表需定期更新"
+    }
+  ],
+
+  "assets": [
+    {
+      "title": "Research Summary Prompt",
+      "type": "prompt",
+      "path": "assets/prompts/research-summary/",
+      "playbook": "构建 Research Agent",
+      "playbook_path": "docs/playbooks/build-research-agent.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "test_status": "passed",
+      "has_report": true,
+      "report_path": "verification/reports/prompts/research-summary-202605.md"
+    },
+    {
+      "title": "Code Review Prompt",
+      "type": "prompt",
+      "path": "assets/prompts/code-review/",
+      "playbook": "构建 Coding Agent",
+      "playbook_path": "docs/playbooks/build-coding-agent.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "test_status": "passed",
+      "has_report": true,
+      "report_path": "verification/reports/prompts/code-review-202605.md"
+    },
+    {
+      "title": "RAG Answer Prompt",
+      "type": "prompt",
+      "path": "assets/prompts/rag-answer/",
+      "playbook": "构建 RAG Agent",
+      "playbook_path": "docs/playbooks/build-rag-agent.md",
+      "evidence_level": "L1",
+      "practical_rating": "B",
+      "test_status": "partial",
+      "has_report": false,
+      "report_path": null
+    },
+    {
+      "title": "Web Search Skill",
+      "type": "skill",
+      "path": "assets/skills/web-search/",
+      "playbook": "构建 Tool-Using Agent",
+      "playbook_path": "docs/playbooks/build-tool-using-agent.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "test_status": "passed",
+      "has_report": true,
+      "report_path": "verification/reports/skills/web-search-202605.md"
+    },
+    {
+      "title": "File Reader Skill",
+      "type": "skill",
+      "path": "assets/skills/file-reader/",
+      "playbook": "构建 Tool-Using Agent",
+      "playbook_path": "docs/playbooks/build-tool-using-agent.md",
+      "evidence_level": "L1",
+      "practical_rating": "B",
+      "test_status": "passed",
+      "has_report": false,
+      "report_path": null
+    },
+    {
+      "title": "Research Agent Workflow",
+      "type": "workflow",
+      "path": "assets/workflows/research-agent/",
+      "playbook": "构建 Research Agent",
+      "playbook_path": "docs/playbooks/build-research-agent.md",
+      "evidence_level": "L2",
+      "practical_rating": "B",
+      "test_status": "passed",
+      "has_report": true,
+      "report_path": "verification/reports/workflows/research-agent-202605.md"
+    },
+    {
+      "title": "RAG Agent Workflow",
+      "type": "workflow",
+      "path": "assets/workflows/rag-agent/",
+      "playbook": "构建 RAG Agent",
+      "playbook_path": "docs/playbooks/build-rag-agent.md",
+      "evidence_level": "L2",
+      "practical_rating": "A",
+      "test_status": "passed",
+      "has_report": false,
+      "report_path": null
+    }
+  ],
+
+  "knowledge_distribution": {
+    "by_category": {
+      "concepts": 11,
+      "patterns": 6,
+      "playbooks": 5,
+      "platforms": 9,
+      "tools": 5,
+      "case_studies": 4,
+      "getting_started": 4,
+      "examples": 2
+    },
+    "by_evidence_level": {
+      "L0": 3,
+      "L1": 8,
+      "L2": 21,
+      "L3": 2,
+      "L4": 0,
+      "unrated": 13
+    },
+    "by_practical_rating": {
+      "A": 21,
+      "B": 10,
+      "C": 3,
+      "D": 0,
+      "unrated": 13
+    }
+  },
+
+  "review_queue": [
+    {
+      "title": "RAG Answer Prompt",
+      "type": "prompt",
+      "issue": "missing_verification_report",
+      "priority": "P1",
+      "action": "补充验证报告，含测试输入输出和环境记录",
+      "path": "assets/prompts/rag-answer/"
+    },
+    {
+      "title": "File Reader Skill",
+      "type": "skill",
+      "issue": "missing_verification_report",
+      "priority": "P1",
+      "action": "补充验证报告，增加异常场景测试",
+      "path": "assets/skills/file-reader/"
+    },
+    {
+      "title": "RAG Agent Workflow",
+      "type": "workflow",
+      "issue": "missing_verification_report",
+      "priority": "P1",
+      "action": "补充端到端验真报告，含多文档场景测试",
+      "path": "assets/workflows/rag-agent/"
+    },
+    {
+      "title": "OpenAI API 使用指南",
+      "type": "platform",
+      "issue": "verification_expiring_soon",
+      "priority": "P0",
+      "action": "验证将在 2026-06-08 过期，需更新定价和模型列表",
+      "path": "docs/platforms/openai-api-guide.md"
+    },
+    {
+      "title": "DeepSeek API 使用指南",
+      "type": "platform",
+      "issue": "missing_metadata",
+      "priority": "P2",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/platforms/deepseek-api-guide.md"
+    },
+    {
+      "title": "Anthropic Claude API 申请指南",
+      "type": "platform",
+      "issue": "missing_metadata",
+      "priority": "P2",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/platforms/anthropic-claude-guide.md"
+    },
+    {
+      "title": "Google Gemini API 使用指南",
+      "type": "platform",
+      "issue": "missing_metadata",
+      "priority": "P2",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/platforms/google-gemini-guide.md"
+    },
+    {
+      "title": "MCP 协议",
+      "type": "concept",
+      "issue": "missing_metadata",
+      "priority": "P2",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/concepts/mcp-protocol.md"
+    },
+    {
+      "title": "Function Calling 机制",
+      "type": "concept",
+      "issue": "missing_metadata",
+      "priority": "P2",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/concepts/function-calling.md"
+    },
+    {
+      "title": "Agent 架构",
+      "type": "concept",
+      "issue": "missing_metadata",
+      "priority": "P2",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/concepts/agent-architecture.md"
+    },
+    {
+      "title": "LLM 基础",
+      "type": "concept",
+      "issue": "missing_metadata",
+      "priority": "P3",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/concepts/llm-basics.md"
+    },
+    {
+      "title": "Embedding 与向量数据库",
+      "type": "concept",
+      "issue": "missing_metadata",
+      "priority": "P3",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/concepts/embedding-vector-db.md"
+    },
+    {
+      "title": "模型微调",
+      "type": "concept",
+      "issue": "missing_metadata",
+      "priority": "P3",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/concepts/fine-tuning.md"
+    },
+    {
+      "title": "LangChain 框架入门",
+      "type": "tool",
+      "issue": "missing_metadata",
+      "priority": "P3",
+      "action": "补充 evidence_level 和 practical_rating 元数据",
+      "path": "docs/tools/langchain-intro.md"
+    },
+    {
+      "title": "部署工具",
+      "type": "tool",
+      "issue": "low_evidence_level",
+      "priority": "P1",
+      "action": "当前 L0，需补充来源和基础复现记录",
+      "path": "docs/tools/deployment-tools.md"
+    },
+    {
+      "title": "评估工具",
+      "type": "tool",
+      "issue": "low_evidence_level",
+      "priority": "P1",
+      "action": "当前 L0，需补充来源和基础复现记录",
+      "path": "docs/tools/evaluation-tools.md"
+    },
+    {
+      "title": "追踪与可观测性",
+      "type": "tool",
+      "issue": "low_evidence_level",
+      "priority": "P1",
+      "action": "当前 L0，需补充来源和基础复现记录",
+      "path": "docs/tools/tracing-and-observability.md"
+    }
+  ],
+
+  "ci_checks": [
+    {"name": "validate-metadata", "status": "passed", "description": "检查所有文档 frontmatter 完整性"},
+    {"name": "check-links", "status": "passed", "description": "检查内部链接有效性"},
+    {"name": "update-index", "status": "passed", "description": "自动更新 INDEX.md"},
+    {"name": "build-graph", "status": "passed", "description": "构建知识图谱数据"},
+    {"name": "smoke-test-assets", "status": "failed", "description": "资产冒烟测试（RAG Answer Prompt 缺少完整测试）"}
+  ]
+}
